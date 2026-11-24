@@ -15,7 +15,7 @@ class CertificationListView(ListView):
         for cert in certs:
             if cert.issuing_organization not in providers:
                 providers.append(cert.issuing_organization)
-        latest = max((c.issue_date for c in certs), default=None)
+        latest = max((c.issue_date for c in certs if c.issue_date), default=None)
         context["providers"] = providers
         context["latest_issue"] = latest
         return context

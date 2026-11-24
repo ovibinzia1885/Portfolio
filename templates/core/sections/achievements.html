@@ -6,7 +6,7 @@
       {% for item in achievements %}
       <div class="col-md-6 col-xl-4 reveal">
         <article class="card-p hover-lift">
-          {% if item.image %}<div class="card-media"><img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy"></div>{% endif %}
+          {% if item.image %}<div class="card-media"><img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy" decoding="async"></div>{% endif %}
           <div class="card-body-p">
             <div class="d-flex gap-3">
               <div class="icon-tile"><i class="bi bi-trophy"></i></div>

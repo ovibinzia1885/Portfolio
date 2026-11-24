@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from apps.core.models import OrderedModel
 from apps.core.utils import unique_slugify
+from apps.core.validators import image_validators
 
 
 class ProjectType(models.TextChoices):
@@ -60,7 +61,7 @@ class ProjectImage(OrderedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="images"
     )
-    image = models.ImageField(upload_to="projects/")
+    image = models.ImageField(upload_to="projects/", validators=image_validators)
     caption = models.CharField(max_length=200, blank=True)
 
     class Meta(OrderedModel.Meta):

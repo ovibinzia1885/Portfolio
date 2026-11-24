@@ -1,5 +1,7 @@
 from django.db import models
 
+from .validators import image_validators, resume_validators
+
 
 class TimeStampedModel(models.Model):
     """Abstract base: created/updated timestamps."""
@@ -32,11 +34,14 @@ class Profile(TimeStampedModel):
         max_length=300, blank=True, help_text="One or two lines shown in the hero section."
     )
     bio = models.TextField(blank=True, help_text="Shown in the About section.")
-    photo = models.ImageField(upload_to="profile/", blank=True)
+    photo = models.ImageField(upload_to="profile/", blank=True, validators=image_validators)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=30, blank=True)
     location = models.CharField(max_length=150, blank=True)
-    resume = models.FileField(upload_to="resume/", blank=True)
+    resume = models.FileField(
+        "CV / Resume", upload_to="resume/", blank=True, validators=resume_validators,
+        help_text="PDF recommended (PDF can be previewed in the browser).",
+    )
     github_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
     facebook_url = models.URLField(blank=True)

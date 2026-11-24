@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Blog{% if active_category %} - {{ active_category.name }}{% elif active_tag %} - #{{ active_tag.name }}{% endif %} | {{ site_name }}{% endblock %}
+{% block meta_description %}Articles and notes by {{ site_name }}{% if active_category %} about {{ active_category.name }}{% elif active_tag %} tagged {{ active_tag.name }}{% endif %}.{% endblock %}
+{% block og_title %}Blog | {{ site_name }}{% endblock %}
+{% block meta_robots %}{% if query %}noindex, follow{% else %}index, follow{% endif %}{% endblock %}
 
 {% block content %}
 <header class="page-header">

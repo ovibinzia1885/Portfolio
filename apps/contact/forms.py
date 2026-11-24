@@ -2,6 +2,8 @@ from django import forms
 
 from .models import ContactMessage
 
+MAX_MESSAGE_LENGTH = 5000
+
 
 class ContactForm(forms.ModelForm):
     # Honeypot: real visitors never see/fill this; bots usually do.
@@ -35,6 +37,10 @@ class ContactForm(forms.ModelForm):
         message = self.cleaned_data["message"].strip()
         if len(message) < 10:
             raise forms.ValidationError("Message must be at least 10 characters long.")
+        if len(message) > MAX_MESSAGE_LENGTH:
+            raise forms.ValidationError(
+                f"Message is too long (maximum {MAX_MESSAGE_LENGTH} characters)."
+            )
         return message
 
     def is_spam(self):

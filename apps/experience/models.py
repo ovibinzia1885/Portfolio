@@ -3,6 +3,7 @@ from django.db import models
 
 from apps.core.models import OrderedModel
 from apps.core.utils import format_date_range, format_duration
+from apps.core.validators import image_validators
 
 
 class Experience(OrderedModel):
@@ -15,7 +16,7 @@ class Experience(OrderedModel):
 
     company = models.CharField(max_length=200)
     company_url = models.URLField("Company website", blank=True)
-    company_logo = models.ImageField(upload_to="experience/logos/", blank=True)
+    company_logo = models.ImageField(upload_to="experience/logos/", blank=True, validators=image_validators)
     designation = models.CharField(max_length=150)
     employment_type = models.CharField(
         max_length=20, choices=EmploymentType.choices, default=EmploymentType.FULL_TIME

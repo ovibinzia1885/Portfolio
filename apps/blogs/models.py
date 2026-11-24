@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from apps.core.models import TimeStampedModel
 from apps.core.utils import unique_slugify
+from apps.core.validators import image_validators
 
 
 class BlogCategory(TimeStampedModel):
@@ -61,7 +62,7 @@ class BlogPost(TimeStampedModel):
     slug = models.SlugField(max_length=220, unique=True, blank=True, allow_unicode=True)
     excerpt = models.CharField(max_length=300, blank=True)
     content = models.TextField()
-    cover_image = models.ImageField(upload_to="blogs/", blank=True)
+    cover_image = models.ImageField(upload_to="blogs/", blank=True, validators=image_validators)
     category = models.ForeignKey(
         BlogCategory,
         on_delete=models.SET_NULL,

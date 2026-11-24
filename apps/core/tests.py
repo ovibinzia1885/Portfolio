@@ -89,7 +89,7 @@ class SiteTests(TestCase):
                  reverse("core:cv_preview")]
         pages += [p.get_absolute_url() for p in Project.objects.all()]
         pages += [p.get_absolute_url() for p in BlogPost.objects.published()]
-        pages += [reverse("research:detail", args=[r.pk]) for r in Research.objects.all()]
+        pages += [r.get_absolute_url() for r in Research.objects.all()]
         checked = set()
         for page in pages:
             html = self.client.get(page).content.decode()
@@ -239,17 +239,17 @@ class SiteTests(TestCase):
         filtered = self.client.get(reverse("research:list"), {"type": "thesis"})
         self.assertEqual(filtered.context["page_obj"].paginator.count, 1)
         paper = Research.objects.first()
-        detail = self.client.get(reverse("research:detail", args=[paper.pk]))
+        detail = self.client.get(paper.get_absolute_url())
         self.assertContains(detail, "Abstract")
         self.assertContains(detail, "https://doi.org/10.0000/sample")
-        pdf = self.client.get(reverse("research:download", args=[paper.pk]))
+        pdf = self.client.get(paper.get_download_url())
         self.assertEqual(pdf.status_code, 200)
         self.assertIn("attachment", pdf["Content-Disposition"])
         self.assertTrue(b"".join(pdf.streaming_content).startswith(b"%PDF"))
 
     def test_research_without_pdf_download_404(self):
         paper = Research.objects.create(title="No pdf", authors="A")
-        self.assertEqual(self.client.get(reverse("research:download", args=[paper.pk])).status_code, 404)
+        self.assertEqual(self.client.get(paper.get_download_url()).status_code, 404)
 
     # ---- CV ----------------------------------------------------------------
     def test_cv_download(self):

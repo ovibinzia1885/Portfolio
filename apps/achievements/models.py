@@ -1,6 +1,7 @@
 from django.db import models
 
 from apps.core.models import OrderedModel
+from apps.core.validators import image_validators
 
 
 class Achievement(OrderedModel):
@@ -8,7 +9,7 @@ class Achievement(OrderedModel):
     organization = models.CharField(max_length=200, blank=True)
     date = models.DateField()
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to="achievements/", blank=True)
+    image = models.ImageField(upload_to="achievements/", blank=True, validators=image_validators)
     url = models.URLField(blank=True)
 
     class Meta(OrderedModel.Meta):

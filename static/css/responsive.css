@@ -15,6 +15,8 @@
 }
 
 @media (max-width: 767.98px) {
+  /* g-5 gutters (3rem) are wider than the container padding -> horizontal scroll on phones */
+  .row.g-5 { --bs-gutter-x: 1.5rem; }
   .section { padding: 3.1rem 0; }
   .section-head { margin-bottom: 1.75rem; }
   .timeline { padding-left: 1.8rem; }

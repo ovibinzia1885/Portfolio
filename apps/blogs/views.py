@@ -70,5 +70,5 @@ class BlogDetailView(DetailView):
         related = BlogPost.objects.published().exclude(pk=post.pk)
         if post.category_id:
             related = related.filter(category=post.category)
-        context["related_posts"] = related.select_related("category")[:3]
+        context["related_posts"] = related.select_related("category").prefetch_related("tags")[:3]
         return context

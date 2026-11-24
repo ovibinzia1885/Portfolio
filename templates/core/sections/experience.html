@@ -9,7 +9,7 @@
         <span class="timeline-dot"></span>
         <article class="card-p"><div class="card-body-p">
           <div class="d-flex gap-3 align-items-start flex-wrap flex-sm-nowrap">
-            {% if exp.company_logo %}<div class="logo-box"><img src="{{ exp.company_logo.url }}" alt="{{ exp.company }} logo" loading="lazy"></div>
+            {% if exp.company_logo %}<div class="logo-box"><img src="{{ exp.company_logo.url }}" alt="{{ exp.company }} logo" loading="lazy" decoding="async"></div>
             {% else %}<div class="logo-box fallback"><i class="bi bi-building"></i></div>{% endif %}
             <div class="flex-grow-1">
               <h3>{{ exp.designation }}</h3>

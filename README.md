@@ -77,6 +77,18 @@ config file with `cp .env.example .env`.
 | `TIME_ZONE`     | `Asia/Dhaka`                                             |                                    |
 | `DATABASE_URL`  | `postgres://user:password@localhost:5432/portfolio`      | Optional. If omitted, SQLite is used |
 
+Production-only variables are used when `DEBUG=False`:
+
+| Variable | Notes |
+|---|---|
+| `SECRET_KEY` | Must be at least 50 random characters, or the app refuses to start |
+| `CSRF_TRUSTED_ORIGINS` | e.g. `https://example.com` |
+| `ADMIN_URL` | Hard-to-guess admin path, e.g. `manage-7f3k/`. Default `admin/` |
+| `SECURE_SSL_REDIRECT`, `SECURE_HSTS_SECONDS`, `SECURE_HSTS_INCLUDE_SUBDOMAINS`, `SECURE_HSTS_PRELOAD` | HTTPS settings. Secure defaults are used if these are unset |
+| `MAX_UPLOAD_MB` | Upload size limit per file. Default 10 |
+
+All of them are listed in `.env.example`.
+
 `.env` is git-ignored. Do not commit it.
 
 ## Sample content
@@ -100,6 +112,14 @@ The `--clear` option leaves your own records untouched.
 ```powershell
 python manage.py test
 ```
+
+The test suite has 117 tests and covers models, views, URLs, forms, admin, security, SEO and
+query budgets. Results are in [docs/QA_REPORT.md](docs/QA_REPORT.md).
+
+## SEO
+
+- `/sitemap.xml` and `/robots.txt` are generated automatically.
+- Every page has its own title, meta description, canonical URL and Open Graph tags.
 
 ## Managing content
 

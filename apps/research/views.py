@@ -1,5 +1,5 @@
 from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import DetailView, ListView
 
 from .models import Research
@@ -33,9 +33,18 @@ class ResearchDetailView(DetailView):
     context_object_name = "paper"
 
 
-def download_pdf(request, pk):
+def legacy_redirect(request, pk):
+    """Old numeric URLs (/research/5/) permanently redirect to the slug URL.
+    A paper whose slug is purely numeric is served directly."""
+    paper = Research.objects.filter(slug=str(pk)).first() or get_object_or_404(Research, pk=pk)
+    if paper.slug == str(pk):
+        return ResearchDetailView.as_view()(request, slug=paper.slug)
+    return redirect(paper, permanent=True)
+
+
+def download_pdf(request, slug):
     """Serve the research PDF as an attachment."""
-    paper = get_object_or_404(Research, pk=pk)
+    paper = get_object_or_404(Research, slug=slug)
     if not paper.pdf:
         raise Http404("No PDF available.")
     return FileResponse(

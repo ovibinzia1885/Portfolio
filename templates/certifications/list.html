@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Certifications | {{ site_name }}{% endblock %}
+{% block meta_description %}Professional certifications earned by {{ site_name }}.{% endblock %}
+{% block og_title %}Certifications | {{ site_name }}{% endblock %}
 
 {% block content %}
 <header class="page-header">
@@ -16,7 +18,7 @@
     {% if certifications %}
       <div class="stat-strip mb-4">
         <div><p class="mono-label">Provider{{ providers|length|pluralize }}</p><strong>{{ providers|slice:":2"|join:", " }}{% if providers|length > 2 %} +{{ providers|length|add:"-2" }}{% endif %}</strong></div>
-        <div><p class="mono-label">Latest</p><strong>{{ latest_issue|date:"M Y" }}</strong></div>
+        <div><p class="mono-label">Latest</p><strong>{% if latest_issue %}{{ latest_issue|date:"M Y" }}{% else %}&mdash;{% endif %}</strong></div>
         <div><p class="mono-label">Proof</p><strong>{{ certifications|length }} credential{{ certifications|length|pluralize }}</strong></div>
       </div>
       <div class="row g-4">

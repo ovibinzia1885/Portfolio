@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ paper.title }} | {{ site_name }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ paper.title }}{% endblock %}
+{% block og_description %}{{ paper.abstract|truncatewords:30|default:paper.title }}{% endblock %}
 {% block meta_description %}{{ paper.abstract|truncatewords:30|default:paper.title }}{% endblock %}
 
 {% block content %}
@@ -30,7 +33,7 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2">
-      {% if paper.pdf %}<a class="btn btn-grad" href="{% url 'research:download' paper.pk %}"><i class="bi bi-file-earmark-pdf me-2"></i>Download PDF</a>{% endif %}
+      {% if paper.pdf %}<a class="btn btn-grad" href="{{ paper.get_download_url }}"><i class="bi bi-file-earmark-pdf me-2"></i>Download PDF</a>{% endif %}
       {% if paper.url %}<a class="btn btn-ghost" href="{{ paper.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-2"></i>View publication</a>{% endif %}
       <a class="btn btn-ghost" href="{% url 'research:list' %}"><i class="bi bi-arrow-left me-2"></i>All research</a>
     </div>

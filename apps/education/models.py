@@ -1,8 +1,9 @@
-from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.core.models import OrderedModel
 from apps.core.utils import format_date_range, format_duration
+from apps.core.validators import document_validators
 
 
 class Education(OrderedModel):
@@ -24,13 +25,19 @@ class Education(OrderedModel):
         "Education certificate",
         upload_to="education/certificates/",
         blank=True,
-        validators=[FileExtensionValidator(["pdf", "jpg", "jpeg", "png", "webp"])],
+        validators=document_validators,
     )
     institution_website = models.URLField(blank=True)
 
     class Meta(OrderedModel.Meta):
         ordering = ["display_order", "-start_date"]
         verbose_name_plural = "education"
+
+    def clean(self):
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": "End date cannot be before start date."})
+        if self.cgpa is not None and self.scale and self.cgpa > self.scale:
+            raise ValidationError({"cgpa": "CGPA cannot be greater than the scale."})
 
     @property
     def duration(self):

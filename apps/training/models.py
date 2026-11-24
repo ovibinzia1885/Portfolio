@@ -1,7 +1,7 @@
-from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from apps.core.models import OrderedModel
+from apps.core.validators import document_validators
 
 
 class Training(OrderedModel):
@@ -15,7 +15,7 @@ class Training(OrderedModel):
     certificate = models.FileField(
         upload_to="training/",
         blank=True,
-        validators=[FileExtensionValidator(["pdf", "jpg", "jpeg", "png", "webp"])],
+        validators=document_validators,
     )
 
     class Meta(OrderedModel.Meta):

@@ -1,7 +1,7 @@
 {# Expects `post`. Wrapped in a column by the caller. #}
 <article class="card-p hover-lift">
   <div class="card-media">
-    {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}" loading="lazy">
+    {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}" loading="lazy" decoding="async">
     {% else %}<div class="media-fallback"><i class="bi bi-journal-text"></i></div>{% endif %}
   </div>
   <div class="card-body-p">

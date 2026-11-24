@@ -2,7 +2,7 @@
 <article class="card-p hover-lift cert-card">
   <div class="cert-media">
     {% if cert.is_image %}
-      <img src="{{ cert.certificate.url }}" alt="{{ cert.name }} certificate" loading="lazy">
+      <img src="{{ cert.certificate.url }}" alt="{{ cert.name }} certificate" loading="lazy" decoding="async">
     {% else %}
       <div class="cert-placeholder"><i class="bi {% if cert.is_pdf %}bi-file-earmark-pdf{% else %}bi-patch-check{% endif %}"></i><span>{% if cert.is_pdf %}PDF certificate{% else %}Credential{% endif %}</span></div>
     {% endif %}
@@ -17,7 +17,7 @@
       <span class="icon-tile"><i class="bi bi-award"></i></span>
     </div>
     <p class="meta mb-0">
-      <i class="bi bi-calendar3"></i>Issued {{ cert.issue_date|date:"M Y" }}{% if cert.expiry_date %} &middot; Expires {{ cert.expiry_date|date:"M Y" }}{% endif %}
+      {% if cert.issue_date %}<i class="bi bi-calendar3"></i>Issued {{ cert.issue_date|date:"M Y" }}{% if cert.expiry_date %} &middot; Expires {{ cert.expiry_date|date:"M Y" }}{% endif %}{% endif %}
       {% if cert.credential_id %}<br><i class="bi bi-hash"></i>{{ cert.credential_id }}{% endif %}
     </p>
     <div class="card-foot">

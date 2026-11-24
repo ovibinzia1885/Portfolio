@@ -1,5 +1,6 @@
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 from apps.achievements.models import Achievement
@@ -62,7 +63,7 @@ class HomeView(TemplateView):
             hero_skills=Skill.objects.filter(main_category=MainCategory.TECHNICAL)[:5],
             trainings=Training.objects.all(),
             latest_posts=(
-                BlogPost.objects.published().select_related("category")[:3]
+                BlogPost.objects.published().select_related("category").prefetch_related("tags")[:3]
             ),
             papers=Research.objects.all()[:4],
             form=ContactForm(),
@@ -73,6 +74,17 @@ class HomeView(TemplateView):
             },
         )
         return context
+
+
+def robots_txt(request):
+    """robots.txt: allow everything public, point crawlers to the sitemap."""
+    lines = [
+        "User-agent: *",
+        "Disallow: /cv/view/",
+        "",
+        f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
 
 
 def _profile_with_cv():

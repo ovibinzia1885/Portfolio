@@ -26,7 +26,7 @@
       <div class="col-lg-5 order-1 order-lg-2 reveal" style="--d:.1s">
         <div class="photo-frame">
           {% if profile and profile.photo %}
-            <img class="photo" src="{{ profile.photo.url }}" alt="Portrait of {{ profile.full_name }}">
+            <img class="photo" src="{{ profile.photo.url }}" alt="Portrait of {{ profile.full_name }}" fetchpriority="high" decoding="async">
           {% else %}
             <div class="photo" role="img" aria-label="Profile photo placeholder"><i class="bi bi-person"></i></div>
           {% endif %}

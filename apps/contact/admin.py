@@ -10,4 +10,8 @@ class ContactMessageAdmin(admin.ModelAdmin):
     list_filter = ("is_read", "created_at")
     search_fields = ("name", "email", "subject", "message")
     ordering = ("-created_at",)
-    readonly_fields = ("created_at", "updated_at")
+    # Visitor messages are evidence: read / mark as read / delete, never edit or fake.
+    readonly_fields = ("name", "email", "subject", "message", "created_at", "updated_at")
+
+    def has_add_permission(self, request):
+        return False

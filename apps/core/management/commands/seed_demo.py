@@ -29,6 +29,21 @@ from apps.training.models import Training
 
 MARK = "[Sample] "
 
+# main category -> subcategory (None = no subcategory) -> [(skill, level)]
+SAMPLE_SKILLS = {
+    MainCategory.TECHNICAL: {
+        "Automation Testing": [("Selenium", "advanced"), ("Cypress", "intermediate")],
+        "Programming Languages": [("Python", "advanced"), ("JavaScript", "intermediate")],
+        "API Testing": [("Postman", "expert"), ("REST Assured", "intermediate")],
+        "CI/CD and DevOps": [("Jenkins", "intermediate"), ("Docker", "beginner")],
+    },
+    MainCategory.PROJECT_MANAGEMENT: {
+        "Test Planning and Estimation": [("Test Planning", "advanced")],
+        "Risk and Issue Management": [("Risk Assessment", "intermediate")],
+    },
+    MainCategory.SOFT: {None: [("Communication", "advanced"), ("Problem Solving", "expert")]},
+}
+
 PALETTES = [
     ((99, 102, 241), (34, 211, 238)),
     ((236, 72, 153), (251, 146, 60)),
@@ -105,6 +120,13 @@ class Command(BaseCommand):
                         files += self.delete_files(image)
             deleted, _ = queryset.delete()
             total += deleted
+        # Subcategories created by seed_skills() that are now empty
+        sample_subs = {name for groups in SAMPLE_SKILLS.values() for name in groups if name}
+        deleted, _ = (
+            SkillSubcategory.objects.filter(name__in=sample_subs)
+            .annotate(n=models.Count("skills")).filter(n=0).delete()
+        )
+        total += deleted
         self.stdout.write(self.style.SUCCESS(f"Removed {total} sample records and {files} files."))
 
     @staticmethod
@@ -239,20 +261,7 @@ class Command(BaseCommand):
             paper.pdf.save(f"sample-paper-{i}.pdf", ContentFile(SAMPLE_PDF), save=True)
 
     def seed_skills(self):
-        plan = {
-            MainCategory.TECHNICAL: {
-                "Automation Testing": [("Selenium", "advanced"), ("Cypress", "intermediate")],
-                "Programming Languages": [("Python", "advanced"), ("JavaScript", "intermediate")],
-                "API Testing": [("Postman", "expert"), ("REST Assured", "intermediate")],
-                "CI/CD and DevOps": [("Jenkins", "intermediate"), ("Docker", "beginner")],
-            },
-            MainCategory.PROJECT_MANAGEMENT: {
-                "Test Planning and Estimation": [("Test Planning", "advanced")],
-                "Risk and Issue Management": [("Risk Assessment", "intermediate")],
-            },
-            MainCategory.SOFT: {None: [("Communication", "advanced"), ("Problem Solving", "expert")]},
-        }
-        for main, groups in plan.items():
+        for main, groups in SAMPLE_SKILLS.items():
             for sub_name, skills in groups.items():
                 sub = None
                 if sub_name:

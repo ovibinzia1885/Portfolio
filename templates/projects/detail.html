@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load portfolio_extras %}
 {% block title %}{{ project.title }} | {{ site_name }}{% endblock %}
+{% block og_title %}{{ project.title }}{% endblock %}
+{% block og_description %}{{ project.summary }}{% endblock %}
+{% block og_image %}{% with cover=project.cover_image %}{% if cover %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ cover.image.url }}">{% else %}{{ block.super }}{% endif %}{% endwith %}{% endblock %}
 {% block meta_description %}{{ project.summary }}{% endblock %}
 
 {% block content %}
@@ -31,7 +34,7 @@
             <div class="carousel-inner">
               {% for img in images %}
               <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <img src="{{ img.image.url }}" alt="{{ img.caption|default:project.title }}">
+                <img src="{{ img.image.url }}" alt="{{ img.caption|default:project.title }}" decoding="async" {% if not forloop.first %}loading="lazy"{% endif %}>
                 {% if img.caption %}<div class="carousel-caption d-none d-md-block"><span class="chip chip-accent">{{ img.caption }}</span></div>{% endif %}
               </div>
               {% endfor %}

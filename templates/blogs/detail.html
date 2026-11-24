@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ post.title }} | {{ site_name }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+{% block og_image %}{% if post.cover_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.cover_image.url }}">{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
 {% block og_title %}{{ post.title }}{% endblock %}
 

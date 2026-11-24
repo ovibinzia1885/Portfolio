@@ -81,6 +81,26 @@ Design direction inspired by a reference portfolio (style only; no text, images 
 - [ ] PDF certificate preview in the modal could not be confirmed visually (headless browser limitation) -
       check once in a normal browser
 
+### Change request 7 - Real CV content (2026-11-24)
+- [x] All sample data removed; Profile, Education, Experience (2), Skills (11 groups / 29 skills),
+      Projects (2 client + 1 personal), Certifications (6) filled from the CV; CV PDF uploaded as resume
+- [x] `Certification.issue_date` is now optional (CV has no dates)
+- Left empty for manual entry: photo, company logos, project images, achievements, training, blog,
+  research, soft skills, certification dates/files
+
+## Day 3 - QA & production preparation (completed 2026-11-24)
+Full report: [docs/QA_REPORT.md](docs/QA_REPORT.md)
+- [x] Automated tests: 36 -> **117** (models, views, URLs, forms, admin for every app); all passing
+- [x] Functional: admin CRUD, search, filters, pagination, file upload, CV download verified by tests
+- [x] Responsive: 8 widths (360-1920) x 10 pages, real + sample data, 0 issues (fixed 4px mobile overflow)
+- [x] Security: production HTTPS/HSTS/secure cookies, strong-SECRET_KEY guard, configurable `ADMIN_URL`,
+      upload type + size validation on all files, read-only contact messages, git history checked for secrets
+- [x] SEO: per-page title/description, Open Graph, canonical URLs, `/sitemap.xml`, `/robots.txt`,
+      research slug URLs (old numeric URLs 301-redirect)
+- [x] Performance: N+1 fixed (blog tags), query-budget test, automatic image resize (max 1920px),
+      lazy/async images, hashed static files in production
+- [x] 9 defects found and fixed (D1-D9 in the QA report)
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`
@@ -93,7 +113,9 @@ Hero/About fallback texts (shown only when Profile is empty) also tell you what 
 - [ ] PostgreSQL production setup: set `DATABASE_URL` on the server
 - [ ] Contact: no email notification yet (messages are stored; read them in admin)
 - [ ] Blog content is plain text (no rich editor / markdown)
-- [ ] Deployment (not started, per instructions)
+- [ ] Deployment (not started, per instructions): decide hosting, then media/static serving,
+      `collectstatic`, production `.env` (see `.env.example`)
+- [ ] Admin login rate limiting (see QA report, remaining risks)
 
 ## Run
 ```
