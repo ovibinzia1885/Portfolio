@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load portfolio_extras %}
+{% block title %}{{ project.title }} | {{ site_name }}{% endblock %}
+{% block meta_description %}{{ project.summary }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ project.title }}</li>
+    </ol></nav>
+    <h1 class="section-title">{{ project.title }}</h1>
+    <p class="section-sub">{{ project.summary }}</p>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        {% with images=project.images.all %}
+          {% if images %}
+          <div id="projectGallery" class="carousel slide gallery-main mb-4" data-bs-ride="false">
+            {% if images|length > 1 %}
+            <div class="carousel-indicators">
+              {% for img in images %}<button type="button" data-bs-target="#projectGallery" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>{% endfor %}
+            </div>
+            {% endif %}
+            <div class="carousel-inner">
+              {% for img in images %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ img.image.url }}" alt="{{ img.caption|default:project.title }}">
+                {% if img.caption %}<div class="carousel-caption d-none d-md-block"><span class="chip chip-accent">{{ img.caption }}</span></div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% if images|length > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#projectGallery" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#projectGallery" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endwith %}
+        <div class="prose">
+          {% if project.description %}{{ project.description|linebreaks }}{% else %}<p class="text-muted">{{ project.summary }}</p>{% endif %}
+        </div>
+      </div>
+
+      <aside class="col-lg-4">
+        <div class="card-p sidebar-card">
+          <h2>Project info</h2>
+          <div class="fact"><i class="bi {% if project.project_type == 'client' %}bi-briefcase{% else %}bi-lightbulb{% endif %}"></i><div><small>Type</small><span>{{ project.get_project_type_display }}{% if project.client_name %} &middot; {{ project.client_name }}{% endif %}</span></div></div>
+          {% if project.start_date %}<div class="fact"><i class="bi bi-calendar3"></i><div><small>Timeline</small><span>{{ project.start_date|date:"M Y" }}{% if project.end_date %} - {{ project.end_date|date:"M Y" }}{% else %} - Present{% endif %}</span></div></div>{% endif %}
+          {% if project.technology_list %}
+          <div class="fact"><i class="bi bi-stack"></i><div><small>Technologies</small>
+            <div class="mt-1">{% for tech in project.technology_list %}<span class="chip">{{ tech }}</span>{% endfor %}</div></div></div>
+          {% endif %}
+          <div class="d-grid gap-2 mt-3">
+            {% if project.live_url %}<a class="btn btn-grad" href="{{ project.live_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-2"></i>Live demo</a>{% endif %}
+            {% if project.repository_url %}<a class="btn btn-ghost" href="{{ project.repository_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-github me-2"></i>View on GitHub</a>{% endif %}
+            <a class="btn btn-ghost" href="{% url 'projects:list' %}"><i class="bi bi-arrow-left me-2"></i>All projects</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    {% if other_projects %}
+    <h2 class="h4 mt-5 mb-4">More projects</h2>
+    <div class="row g-4">
+      {% for project in other_projects %}<div class="col-md-6 col-xl-4">{% include "components/project_card.html" %}</div>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

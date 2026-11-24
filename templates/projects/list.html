@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Projects | {{ site_name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Projects</li>
+    </ol></nav>
+    <h1 class="section-title">All projects</h1>
+    <p class="section-sub">Client work and personal projects. Filter by technology.</p>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container">
+    {% if projects %}
+      {% for group in project_groups %}{% include "components/project_group.html" %}{% endfor %}
+    {% else %}{% include "components/empty_state.html" with icon="bi-kanban" text="No projects yet." %}{% endif %}
+  </div>
+</div>
+{% endblock %}

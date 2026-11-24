@@ -56,6 +56,11 @@ class Skill(OrderedModel):
     class Meta(OrderedModel.Meta):
         ordering = ["main_category", "subcategory__display_order", "display_order", "name"]
 
+    @property
+    def level_index(self):
+        """1-4, used for the level dots in templates."""
+        return [c[0] for c in self.Level.choices].index(self.experience_level) + 1
+
     def clean(self):
         if self.subcategory and self.subcategory.main_category != self.main_category:
             raise ValidationError(

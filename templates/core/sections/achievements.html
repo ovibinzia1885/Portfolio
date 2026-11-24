@@ -1,0 +1,26 @@
+<section id="achievements" class="section" aria-label="achievements">
+  <div class="container">
+    {% include "components/section_title.html" with eyebrow="Achievements" title="Awards & recognition" subtitle="Milestones along the way." %}
+    {% if achievements %}
+    <div class="row g-4">
+      {% for item in achievements %}
+      <div class="col-md-6 col-xl-4 reveal">
+        <article class="card-p hover-lift">
+          {% if item.image %}<div class="card-media"><img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy"></div>{% endif %}
+          <div class="card-body-p">
+            <div class="d-flex gap-3">
+              <div class="icon-tile"><i class="bi bi-trophy"></i></div>
+              <div>
+                <h3 class="h6 mb-1">{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</h3>
+                <p class="meta mb-0">{% if item.organization %}{{ item.organization }} &middot; {% endif %}{{ item.date|date:"M Y" }}</p>
+              </div>
+            </div>
+            {% if item.description %}<p class="text-muted small mt-3 mb-0">{{ item.description|truncatewords:30 }}</p>{% endif %}
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}{% include "components/empty_state.html" with icon="bi-trophy" text="No achievements added yet." %}{% endif %}
+  </div>
+</section>

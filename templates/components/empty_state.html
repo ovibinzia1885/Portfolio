@@ -1,0 +1,5 @@
+{# Usage: {% include "components/empty_state.html" with icon="bi-folder2-open" text="No projects yet." %} #}
+<div class="empty-state reveal">
+  <i class="bi {{ icon|default:'bi-inbox' }}"></i>
+  <p class="mb-0">{{ text|default:"Nothing to show yet. Check back soon." }}</p>
+</div>

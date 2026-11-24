@@ -1,12 +1,24 @@
 from django.db import models
-from django.utils.text import slugify
+from django.urls import reverse
 
 from apps.core.models import OrderedModel
+from apps.core.utils import unique_slugify
+
+
+class ProjectType(models.TextChoices):
+    CLIENT = "client", "Client Project"
+    PERSONAL = "personal", "Personal Project"
 
 
 class Project(OrderedModel):
+    project_type = models.CharField(
+        max_length=10, choices=ProjectType.choices, default=ProjectType.PERSONAL
+    )
+    client_name = models.CharField(
+        max_length=150, blank=True, help_text="Only for client projects (optional)."
+    )
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=220, unique=True, blank=True)
+    slug = models.SlugField(max_length=220, unique=True, blank=True, allow_unicode=True)
     summary = models.CharField(max_length=300)
     description = models.TextField(blank=True)
     technologies = models.CharField(
@@ -23,8 +35,11 @@ class Project(OrderedModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = unique_slugify(self, self.title)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("projects:detail", args=[self.slug])
 
     @property
     def technology_list(self):

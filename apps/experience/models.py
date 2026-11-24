@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.core.models import OrderedModel
+from apps.core.utils import format_date_range, format_duration
 
 
 class Experience(OrderedModel):
@@ -38,6 +39,14 @@ class Experience(OrderedModel):
             raise ValidationError({"end_date": "End date is required unless current."})
         elif self.start_date and self.end_date < self.start_date:
             raise ValidationError({"end_date": "End date cannot be before start date."})
+
+    @property
+    def duration(self):
+        return format_duration(self.start_date, None if self.is_current else self.end_date)
+
+    @property
+    def date_range(self):
+        return format_date_range(self.start_date, self.end_date, present=self.is_current)
 
     @property
     def technology_list(self):

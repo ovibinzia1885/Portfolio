@@ -2,6 +2,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from apps.core.models import OrderedModel
+from apps.core.utils import format_date_range, format_duration
 
 
 class Education(OrderedModel):
@@ -30,6 +31,16 @@ class Education(OrderedModel):
     class Meta(OrderedModel.Meta):
         ordering = ["display_order", "-start_date"]
         verbose_name_plural = "education"
+
+    @property
+    def duration(self):
+        if not self.end_date:
+            return "Ongoing"
+        return format_duration(self.start_date, self.end_date)
+
+    @property
+    def date_range(self):
+        return format_date_range(self.start_date, self.end_date, present=True)
 
     def __str__(self):
         return f"{self.degree} - {self.institution_name}"

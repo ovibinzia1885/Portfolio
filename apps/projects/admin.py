@@ -17,11 +17,12 @@ class ProjectImageInline(ImagePreviewMixin, admin.TabularInline):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = (
-        "title", "cover_preview", "image_count", "is_featured", "start_date", "display_order",
+        "title", "project_type", "cover_preview", "image_count", "is_featured",
+        "start_date", "display_order",
     )
     list_editable = ("is_featured", "display_order")
-    list_filter = ("is_featured",)
-    search_fields = ("title", "summary", "technologies")
+    list_filter = ("project_type", "is_featured")
+    search_fields = ("title", "client_name", "summary", "technologies")
     prepopulated_fields = {"slug": ("title",)}
     ordering = ("display_order", "-start_date")
     readonly_fields = ("created_at", "updated_at")

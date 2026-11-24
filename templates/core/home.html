@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}{% if profile %}{{ profile.full_name }}{% else %}Portfolio{% endif %}{% endblock %}
+{% block title %}{{ site_name }}{% if profile and profile.headline %} | {{ profile.headline }}{% endif %}{% endblock %}
 
 {% block content %}
-<main class="container py-5 text-center">
-  <h1 class="display-5 fw-bold">
-    {% if profile %}{{ profile.full_name }}{% else %}Welcome to my Portfolio{% endif %}
-  </h1>
-  <p class="lead text-secondary">
-    {% if profile and profile.headline %}{{ profile.headline }}{% else %}Coming soon.{% endif %}
-  </p>
-  <a href="/admin/" class="btn btn-primary"><i class="bi bi-gear me-1"></i>Admin</a>
-</main>
+  {% include "core/sections/hero.html" %}
+  {% include "core/sections/about.html" %}
+  {% include "core/sections/education.html" %}
+  {% include "core/sections/experience.html" %}
+  {% include "core/sections/skills.html" %}
+  {% include "core/sections/projects.html" %}
+  {% include "core/sections/achievements.html" %}
+  {% include "core/sections/certifications.html" %}
+  {% include "core/sections/training.html" %}
+  {% include "core/sections/blogs.html" %}
+  {% include "core/sections/research.html" %}
+  {% include "core/sections/contact.html" %}
 {% endblock %}

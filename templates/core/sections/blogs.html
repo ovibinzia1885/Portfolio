@@ -1,0 +1,13 @@
+<section id="blogs" class="section section-alt" aria-label="blogs">
+  <div class="container">
+    {% include "components/section_title.html" with eyebrow="Blog" title="Latest articles" subtitle="Thoughts, tutorials and notes." %}
+    {% if latest_posts %}
+    <div class="row g-4">
+      {% for post in latest_posts %}
+      <div class="col-md-6 col-lg-4 reveal">{% include "components/blog_card.html" %}</div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5"><a href="{% url 'blogs:list' %}" class="btn btn-ghost">Read all articles <i class="bi bi-arrow-right ms-1"></i></a></div>
+    {% else %}{% include "components/empty_state.html" with icon="bi-journal-text" text="No published articles yet." %}{% endif %}
+  </div>
+</section>

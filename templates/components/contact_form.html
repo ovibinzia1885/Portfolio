@@ -1,0 +1,34 @@
+{# Expects `form`. Posts to the contact view which validates and stores the message. #}
+<form method="post" action="{% url 'contact:contact' %}" data-contact-form novalidate class="needs-validation">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label" for="{{ form.name.id_for_label }}">Name</label>
+      {{ form.name }}
+      {% for e in form.name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+      {{ form.email }}
+      {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="{{ form.subject.id_for_label }}">Subject</label>
+      {{ form.subject }}
+      {% for e in form.subject.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="{{ form.message.id_for_label }}">Message</label>
+      {{ form.message }}
+      {% for e in form.message.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+    </div>
+    <div class="hp-field" aria-hidden="true">
+      <label for="{{ form.website.id_for_label }}">Leave this field empty</label>
+      {{ form.website }}
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-grad"><i class="bi bi-send me-2"></i>Send message</button>
+    </div>
+  </div>
+</form>

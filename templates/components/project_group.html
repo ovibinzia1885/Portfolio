@@ -1,0 +1,29 @@
+{# Expects `group` (key, label, icon, subtitle, projects, technologies). One filterable block. #}
+<div class="project-group mb-5" data-filter-scope id="projects-{{ group.key }}">
+  <div class="d-flex align-items-center gap-3 mb-3 reveal">
+    <div class="icon-tile"><i class="bi {{ group.icon }}"></i></div>
+    <div>
+      <h3 class="h4 mb-0">{{ group.label }}</h3>
+      <p class="meta mb-0">{{ group.subtitle }}</p>
+    </div>
+    <span class="chip chip-accent ms-auto mb-0">{{ group.projects|length }}</span>
+  </div>
+
+  {% if group.projects %}
+    {% if group.technologies|length > 1 %}
+    <div class="filter-bar" data-filter-group role="group" aria-label="Filter {{ group.label }} by technology">
+      <button type="button" class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+      {% for key, label in group.technologies %}<button type="button" class="filter-btn" data-filter="{{ key }}" aria-pressed="false">{{ label }}</button>{% endfor %}
+    </div>
+    {% endif %}
+    <div class="row g-4">
+      {% for project in group.projects %}
+      <div class="col-md-6 col-xl-4 filter-item" data-tech="{% for t in project.technology_list %}{{ t|lower }}{% if not forloop.last %},{% endif %}{% endfor %}">
+        <div class="reveal h-100">{% include "components/project_card.html" %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with icon=group.icon text="No projects in this group yet." %}
+  {% endif %}
+</div>

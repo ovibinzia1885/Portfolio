@@ -1,0 +1,50 @@
+/* Responsive overrides (mobile-first base lives in main.css) ------------------ */
+
+/* Tablet and below */
+@media (max-width: 991.98px) {
+  .section { padding: 4rem 0; }
+  .navbar-collapse {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: .75rem; margin-top: .6rem; box-shadow: var(--shadow); max-height: calc(100vh - var(--nav-h) - 20px); overflow-y: auto;
+  }
+  .navbar-portfolio .nav-link.active::after { display: none; }
+  .navbar-portfolio .nav-link.active { background: var(--surface-2); }
+  .hero { min-height: auto; padding-bottom: 5rem; text-align: center; }
+  .hero .lead { margin-left: auto; margin-right: auto; }
+  .hero .hero-actions, .hero .social { justify-content: center; }
+  .hero .order-lg-last { margin-bottom: 1.5rem; }
+  .scroll-hint { display: none; }
+}
+
+/* Large phones */
+@media (max-width: 767.98px) {
+  .section { padding: 3.25rem 0; }
+  .section-head { margin-bottom: 2rem; }
+  .page-header { padding-top: calc(var(--nav-h) + 1.75rem); }
+  .timeline { padding-left: 1.9rem; }
+  .timeline-dot { left: -1.9rem; }
+  .card-p .card-body-p { padding: 1.15rem; }
+  .toast-stack { align-items: stretch; }
+}
+
+/* Small phones */
+@media (max-width: 575.98px) {
+  :root { --nav-h: 64px; }
+  .hero h1 { font-size: 2.1rem; }
+  .btn { padding: .6rem 1.15rem; }
+  .hero-actions .btn { flex: 1 1 100%; }
+  .skill-tabs .filter-btn { flex: 1 1 auto; }
+  .stat strong { font-size: 1.6rem; }
+}
+
+/* Wide screens */
+@media (min-width: 1400px) {
+  .container { max-width: 1240px; }
+}
+
+/* Print: clean readable output */
+@media print {
+  .navbar-portfolio, .site-footer, .back-to-top, .toast-stack, .scroll-hint { display: none !important; }
+  .section { padding: 1.5rem 0; }
+  body { background: #fff; color: #000; }
+}

@@ -1,0 +1,30 @@
+<section id="about" class="section section-alt" aria-label="about">
+  <div class="container">
+    {% include "components/section_title.html" with eyebrow="About me" title="Who I am" subtitle="A short introduction." %}
+    <div class="row g-4">
+      <div class="col-lg-7 reveal">
+        <div class="prose">
+          {% if profile and profile.bio %}{{ profile.bio|linebreaks }}
+          {% else %}{% include "components/empty_state.html" with icon="bi-person-lines-fill" text="Write your bio in the admin panel (Core > Profile > Bio)." %}{% endif %}
+        </div>
+        <div class="row g-3 mt-2">
+          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.projects }}</strong><span class="meta">Projects</span></div></div>
+          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.certifications }}</strong><span class="meta">Certifications</span></div></div>
+          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.papers }}</strong><span class="meta">Publications</span></div></div>
+        </div>
+      </div>
+      <div class="col-lg-5 reveal" style="--d:.1s">
+        <div class="card-p"><div class="card-body-p">
+          {% if profile %}
+            {% if profile.location %}<div class="fact"><i class="bi bi-geo-alt"></i><div><small>Location</small><span>{{ profile.location }}</span></div></div>{% endif %}
+            {% if profile.email %}<div class="fact"><i class="bi bi-envelope"></i><div><small>Email</small><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></div></div>{% endif %}
+            {% if profile.phone %}<div class="fact"><i class="bi bi-telephone"></i><div><small>Phone</small><a href="tel:{{ profile.phone }}">{{ profile.phone }}</a></div></div>{% endif %}
+          {% endif %}
+          {% if profile and profile.resume %}
+            <a href="{% url 'core:download_cv' %}" class="btn btn-grad w-100 mt-3"><i class="bi bi-download me-2"></i>Download CV</a>
+          {% endif %}
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>

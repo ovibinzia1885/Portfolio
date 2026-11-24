@@ -1,0 +1,6 @@
+{# Usage: {% include "components/section_title.html" with eyebrow="About" title="Who I am" subtitle="..." %} #}
+<div class="section-head reveal {% if center %}text-center{% endif %}">
+  <span class="eyebrow">{{ eyebrow }}</span>
+  <h2 class="section-title">{{ title }}</h2>
+  {% if subtitle %}<p class="section-sub">{{ subtitle }}</p>{% endif %}
+</div>

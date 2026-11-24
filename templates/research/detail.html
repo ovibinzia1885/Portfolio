@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ paper.title }} | {{ site_name }}{% endblock %}
+{% block meta_description %}{{ paper.abstract|truncatewords:30|default:paper.title }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container" style="max-width: 900px;">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'research:list' %}">Research</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ paper.title|truncatechars:40 }}</li>
+    </ol></nav>
+    <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>
+    <h1 class="section-title">{{ paper.title }}</h1>
+    <p class="meta mb-0"><i class="bi bi-people"></i>{{ paper.authors }}</p>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container" style="max-width: 900px;">
+    <div class="card-p sidebar-card">
+      {% if paper.venue %}<div class="fact"><i class="bi bi-book"></i><div><small>Published in</small><span>{{ paper.venue }}</span></div></div>{% endif %}
+      {% if paper.publication_date %}<div class="fact"><i class="bi bi-calendar3"></i><div><small>Date</small><span>{{ paper.publication_date|date:"F Y" }}</span></div></div>{% endif %}
+      {% if paper.doi %}<div class="fact"><i class="bi bi-link-45deg"></i><div><small>DOI</small><a href="https://doi.org/{{ paper.doi }}" target="_blank" rel="noopener noreferrer">{{ paper.doi }}</a></div></div>{% endif %}
+    </div>
+
+    <h2 class="h4 mb-3">Abstract</h2>
+    <div class="abstract-box prose mb-4">
+      {% if paper.abstract %}{{ paper.abstract|linebreaks }}{% else %}<p class="text-muted mb-0">No abstract provided.</p>{% endif %}
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      {% if paper.pdf %}<a class="btn btn-grad" href="{% url 'research:download' paper.pk %}"><i class="bi bi-file-earmark-pdf me-2"></i>Download PDF</a>{% endif %}
+      {% if paper.url %}<a class="btn btn-ghost" href="{{ paper.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-2"></i>View publication</a>{% endif %}
+      <a class="btn btn-ghost" href="{% url 'research:list' %}"><i class="bi bi-arrow-left me-2"></i>All research</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

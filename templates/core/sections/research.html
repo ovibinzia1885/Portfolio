@@ -1,0 +1,27 @@
+{% load portfolio_extras %}
+<section id="research" class="section" aria-label="research">
+  <div class="container">
+    {% include "components/section_title.html" with eyebrow="Research" title="Publications & papers" subtitle="Academic and applied research." %}
+    {% if papers %}
+    <div class="row g-4">
+      {% for paper in papers %}
+      <div class="col-lg-6 reveal">
+        <article class="card-p hover-lift"><div class="card-body-p">
+          <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>
+          <h3 class="h5 stretched-link-title mt-2"><a href="{% url 'research:detail' paper.pk %}">{{ paper.title }}</a></h3>
+          <p class="meta mb-2"><i class="bi bi-people"></i>{{ paper.authors }}</p>
+          <p class="meta mb-2">{% if paper.venue %}<i class="bi bi-book"></i>{{ paper.venue }}{% endif %}{% if paper.publication_date %} &middot; {{ paper.publication_date|date:"M Y" }}{% endif %}</p>
+          {% if paper.abstract %}<p class="text-muted small">{{ paper.abstract|truncatewords:28 }}</p>{% endif %}
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <a class="btn btn-ghost btn-sm" href="{% url 'research:detail' paper.pk %}">Read abstract</a>
+            {% if paper.pdf %}<a class="btn btn-grad btn-sm" href="{% url 'research:download' paper.pk %}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>{% endif %}
+            {% if paper.url %}<a class="btn btn-ghost btn-sm" href="{{ paper.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Publication</a>{% endif %}
+          </div>
+        </div></article>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5"><a href="{% url 'research:list' %}" class="btn btn-ghost">All research <i class="bi bi-arrow-right ms-1"></i></a></div>
+    {% else %}{% include "components/empty_state.html" with icon="bi-mortarboard" text="No research added yet." %}{% endif %}
+  </div>
+</section>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Research | {{ site_name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Research</li>
+    </ol></nav>
+    <h1 class="section-title">Research & publications</h1>
+    <p class="section-sub">Papers, theses and preprints.</p>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container">
+    <div class="filter-bar" role="group" aria-label="Filter by type">
+      <a class="filter-btn {% if not active_type %}active{% endif %}" href="{% url 'research:list' %}">All</a>
+      {% for value, label in types %}<a class="filter-btn {% if active_type == value %}active{% endif %}" href="?type={{ value }}">{{ label }}</a>{% endfor %}
+    </div>
+
+    {% if papers %}
+    <div class="row g-4">
+      {% for paper in papers %}
+      <div class="col-lg-6">
+        <article class="card-p hover-lift"><div class="card-body-p">
+          <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>
+          <h2 class="h5 stretched-link-title mt-2"><a href="{% url 'research:detail' paper.pk %}">{{ paper.title }}</a></h2>
+          <p class="meta mb-2"><i class="bi bi-people"></i>{{ paper.authors }}</p>
+          <p class="meta mb-2">{% if paper.venue %}<i class="bi bi-book"></i>{{ paper.venue }}{% endif %}{% if paper.publication_date %} &middot; {{ paper.publication_date|date:"M Y" }}{% endif %}</p>
+          {% if paper.abstract %}<p class="text-muted small">{{ paper.abstract|truncatewords:35 }}</p>{% endif %}
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-ghost btn-sm" href="{% url 'research:detail' paper.pk %}">Details</a>
+            {% if paper.pdf %}<a class="btn btn-grad btn-sm" href="{% url 'research:download' paper.pk %}"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a>{% endif %}
+            {% if paper.url %}<a class="btn btn-ghost btn-sm" href="{{ paper.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Publication</a>{% endif %}
+          </div>
+        </div></article>
+      </div>
+      {% endfor %}
+    </div>
+    {% include "components/pagination.html" %}
+    {% else %}{% include "components/empty_state.html" with icon="bi-mortarboard" text="No research found." %}{% endif %}
+  </div>
+</div>
+{% endblock %}

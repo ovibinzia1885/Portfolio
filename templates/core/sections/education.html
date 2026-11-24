@@ -1,0 +1,32 @@
+<section id="education" class="section" aria-label="education">
+  <div class="container">
+    {% include "components/section_title.html" with eyebrow="Education" title="Academic background" subtitle="Degrees and institutions." %}
+    {% if educations %}
+    <div class="row g-4">
+      {% for edu in educations %}
+      <div class="col-md-6 reveal">
+        <article class="card-p hover-lift"><div class="card-body-p">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="icon-tile"><i class="bi bi-mortarboard"></i></div>
+            <div class="flex-grow-1">
+              <h3 class="h5 mb-1">{{ edu.degree }}{% if edu.field_of_study %} <span class="text-muted fw-normal">in {{ edu.field_of_study }}</span>{% endif %}</h3>
+              <p class="mb-1 fw-semibold">
+                {% if edu.institution_website %}<a href="{{ edu.institution_website }}" target="_blank" rel="noopener noreferrer">{{ edu.institution_name }} <i class="bi bi-box-arrow-up-right small"></i></a>{% else %}{{ edu.institution_name }}{% endif %}
+              </p>
+              {% if edu.department %}<p class="meta mb-2"><i class="bi bi-building"></i>{{ edu.department }}</p>{% endif %}
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 my-3">
+            {% if edu.cgpa %}<span class="chip chip-accent"><i class="bi bi-award me-1"></i>CGPA {{ edu.cgpa }} / {{ edu.scale }}</span>{% endif %}
+            {% if edu.passing_year %}<span class="chip"><i class="bi bi-calendar-check me-1"></i>Passed {{ edu.passing_year }}</span>{% endif %}
+            <span class="chip"><i class="bi bi-hourglass-split me-1"></i>{{ edu.date_range }} &middot; {{ edu.duration }}</span>
+          </div>
+          {% if edu.description %}<p class="text-muted small mb-2">{{ edu.description|truncatewords:35 }}</p>{% endif %}
+          {% if edu.certificate %}<a class="btn btn-ghost btn-sm" href="{{ edu.certificate.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-file-earmark-check me-1"></i>View certificate</a>{% endif %}
+        </div></article>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}{% include "components/empty_state.html" with icon="bi-mortarboard" text="No education added yet." %}{% endif %}
+  </div>
+</section>

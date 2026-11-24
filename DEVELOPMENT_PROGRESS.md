@@ -25,10 +25,46 @@
 
 - [x] Experience: added `company_url` and `company_logo` (with logo preview in admin)
 
+## Day 2 - Frontend & functionality (completed 2026-11-24)
+
+- [x] Design system: premium dark theme + light theme toggle (saved in browser), Inter / Space Grotesk,
+      Bootstrap 5.3 + Bootstrap Icons, scroll-reveal animations (respects reduced-motion),
+      files: `static/css/main.css`, `static/css/responsive.css`, `static/js/main.js`
+- [x] Base frontend: `base.html`, navbar (scroll-spy, mobile menu), footer, messages (toasts),
+      reusable components in `templates/components/` (section title, cards, pagination, empty state, contact form)
+- [x] Homepage: Hero, About, Education, Experience (timeline), Skills (tabs by category),
+      Featured Projects, Achievements, Certifications, Training, Latest Blogs, Research, Contact
+      (`templates/core/sections/`) - all data comes from the database
+- [x] Projects: technology filter, detail page with image gallery, GitHub + live demo links
+- [x] Blog: list, detail, search, categories (`BlogCategory`), tags (`BlogTag`), pagination (6/page),
+      drafts and future-dated posts hidden, reading time
+- [x] Research: list (+ type filter), detail with abstract, PDF download, DOI/publication links
+- [x] Contact: validated form, DB storage, success/error messages, honeypot spam trap, CSRF
+- [x] Media: profile photo, project images, certificates, blog images, research PDFs, CV upload + download
+      (`/cv/download/`)
+- [x] Model additions: `Profile.short_intro`, `BlogCategory`, `BlogTag`, `BlogPost.category/tags`,
+      duration helpers on Education/Experience
+- [x] Tests: 25 automated tests (`python manage.py test`) - all passing
+- [x] Responsive check (Edge headless, real viewports 360/390/820/1024/1366/1920 x 10 pages):
+      no horizontal overflow, no broken images. Fixed: project card buttons were pushed outside the card.
+
+### Change request 3 (2026-11-24)
+- [x] Projects split into two parts: **Client Projects** and **Personal Projects**
+      (`Project.project_type`, optional `client_name`) on the homepage and `/projects/`;
+      each part has its own technology filter and empty-state message. 27 tests passing.
+
+### Placeholder content (replace with your own)
+All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
+`python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`
+(your own records are never touched). Placeholder images are generated gradients.
+Hero/About fallback texts (shown only when Profile is empty) also tell you what to fill in.
+
 ## Open items
 - [ ] Install Git (https://git-scm.com/download/win) and `git init`
 - [ ] PostgreSQL production setup: `pip install "psycopg[binary]"` + set `DATABASE_URL`
-- [ ] Day 2: public pages, Bootstrap UI, contact form, automated tests
+- [ ] Contact: no email notification yet (messages are stored; read them in admin)
+- [ ] Blog content is plain text (no rich editor / markdown)
+- [ ] Deployment (not started, per instructions)
 
 ## Run
 ```

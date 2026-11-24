@@ -28,7 +28,10 @@ class Profile(TimeStampedModel):
 
     full_name = models.CharField(max_length=150)
     headline = models.CharField(max_length=200, blank=True)
-    bio = models.TextField(blank=True)
+    short_intro = models.CharField(
+        max_length=300, blank=True, help_text="One or two lines shown in the hero section."
+    )
+    bio = models.TextField(blank=True, help_text="Shown in the About section.")
     photo = models.ImageField(upload_to="profile/", blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=30, blank=True)

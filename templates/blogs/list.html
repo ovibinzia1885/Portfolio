@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Blog{% if active_category %} - {{ active_category.name }}{% elif active_tag %} - #{{ active_tag.name }}{% endif %} | {{ site_name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+      <li class="breadcrumb-item {% if not active_category and not active_tag %}active{% endif %}">{% if active_category or active_tag %}<a href="{% url 'blogs:list' %}">Blog</a>{% else %}Blog{% endif %}</li>
+      {% if active_category %}<li class="breadcrumb-item active">{{ active_category.name }}</li>{% endif %}
+      {% if active_tag %}<li class="breadcrumb-item active">#{{ active_tag.name }}</li>{% endif %}
+    </ol></nav>
+    <h1 class="section-title">{% if active_category %}{{ active_category.name }}{% elif active_tag %}#{{ active_tag.name }}{% elif query %}Search results{% else %}Blog{% endif %}</h1>
+    <p class="section-sub">{% if query %}{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }} for &ldquo;{{ query }}&rdquo;{% else %}Articles, tutorials and notes.{% endif %}</p>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        {% if posts %}
+          <div class="row g-4">
+            {% for post in posts %}<div class="col-md-6">{% include "components/blog_card.html" %}</div>{% endfor %}
+          </div>
+          {% include "components/pagination.html" %}
+        {% else %}
+          {% include "components/empty_state.html" with icon="bi-search" text="No articles found." %}
+        {% endif %}
+      </div>
+
+      <aside class="col-lg-4">
+        <div class="card-p sidebar-card">
+          <h2>Search</h2>
+          <form method="get" action="{% url 'blogs:list' %}" role="search">
+            <div class="input-group">
+              <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search articles..." aria-label="Search articles">
+              <button class="btn btn-grad" type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+            </div>
+          </form>
+        </div>
+        <div class="card-p sidebar-card">
+          <h2>Categories</h2>
+          {% if categories %}
+          <ul class="cat-list">
+            {% for cat in categories %}<li><a href="{{ cat.get_absolute_url }}" class="{% if active_category == cat %}active{% endif %}"><span>{{ cat.name }}</span><span class="chip mb-0">{{ cat.post_count }}</span></a></li>{% endfor %}
+          </ul>
+          {% else %}<p class="text-muted small mb-0">No categories yet.</p>{% endif %}
+        </div>
+        <div class="card-p sidebar-card">
+          <h2>Tags</h2>
+          {% for tag in tags %}<a class="chip {% if active_tag == tag %}chip-accent{% endif %}" href="{{ tag.get_absolute_url }}">#{{ tag.name }} ({{ tag.post_count }})</a>{% empty %}<p class="text-muted small mb-0">No tags yet.</p>{% endfor %}
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+{% endblock %}
