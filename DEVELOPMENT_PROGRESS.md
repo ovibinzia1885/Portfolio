@@ -88,8 +88,9 @@ All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 Hero/About fallback texts (shown only when Profile is empty) also tell you what to fill in.
 
 ## Open items
-- [ ] Install Git (https://git-scm.com/download/win) and `git init`
-- [ ] PostgreSQL production setup: `pip install "psycopg[binary]"` + set `DATABASE_URL`
+- [x] Git installed; repo pushed to https://github.com/ovibinzia1885/Portfolio
+- [x] README.md added (features, setup, env vars, sample data, tests)
+- [ ] PostgreSQL production setup: set `DATABASE_URL` on the server
 - [ ] Contact: no email notification yet (messages are stored; read them in admin)
 - [ ] Blog content is plain text (no rich editor / markdown)
 - [ ] Deployment (not started, per instructions)
