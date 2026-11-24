@@ -200,6 +200,20 @@ class SeoTests(TempMediaMixin, TestCase):
         self.assertNotIn("<script>", escaped)
         self.assertTrue(escaped.startswith("&lt;script&gt;"))
 
+    def test_no_template_syntax_leaks_into_pages(self):
+        """A multi-line {# #} comment is printed as text by Django - catch any raw template syntax."""
+        from apps.achievements.models import Achievement
+
+        Certification.objects.create(name="C", issuing_organization="O")
+        Achievement.objects.create(title="Award", date=date(2024, 1, 1))
+        urls = [reverse("core:home"), reverse("projects:list"), reverse("blogs:list"), reverse("research:list"),
+                reverse("certifications:list"), reverse("contact:contact"),
+                self.project.get_absolute_url(), self.post.get_absolute_url(), self.paper.get_absolute_url()]
+        for url in urls:
+            html = self.client.get(url).content.decode()
+            for token in ("{#", "#}", "{%", "%}", "{{", "}}"):
+                self.assertNotIn(token, html, f"{token!r} visible on {url}")
+
     def test_heading_outline_has_no_skipped_levels(self):
         import re
 

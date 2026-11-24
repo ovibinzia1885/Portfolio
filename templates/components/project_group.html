@@ -1,5 +1,7 @@
-{# Expects `group` (key, label, icon, subtitle, projects, technologies). One filterable block.
-   Optional `heading` ("h2" on the projects page, default "h3" under a home-page section). #}
+{% comment %}
+  Expects `group` (key, label, icon, subtitle, projects, technologies). One filterable block.
+  Optional `heading` ("h2" on the projects page, default "h3" under a home-page section).
+{% endcomment %}
 <div class="project-group mb-5" data-filter-scope id="projects-{{ group.key }}">
   <div class="d-flex align-items-center gap-3 mb-3 reveal">
     <div class="icon-tile"><i class="bi {{ group.icon }}"></i></div>
