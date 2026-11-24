@@ -36,6 +36,18 @@ class AdminCoverageTests(AdminClientMixin, TestCase):
                 expected_add = 200 if model_admin.has_add_permission(type("R", (), {"user": self.admin_user})()) else 403
                 self.assertEqual(self.client.get(reverse("admin:%s_%s_add" % info)).status_code, expected_add)
 
+    def test_branding_dashboard_and_app_order(self):
+        response = self.client.get(reverse("admin:index"))
+        self.assertContains(response, "Ovy Portfolio")
+        self.assertNotContains(response, "Django administration")
+        self.assertContains(response, "op-dashboard")                         # dashboard cards
+        self.assertContains(response, reverse("admin:projects_project_add"))   # quick add
+        labels = [app["app_label"] for app in response.context["app_list"]]
+        self.assertEqual(labels[:3], ["core", "experience", "education"])     # website order
+        self.assertEqual(labels[-1], "auth")
+        login = self.client_class().get(reverse("admin:login"))
+        self.assertContains(login, "Ovy Portfolio")
+
     def test_all_local_models_registered(self):
         local = [m for m in apps.get_models() if m.__module__.startswith("apps.")]
         inline_only = {"ProjectImage"}
@@ -84,6 +96,65 @@ class UploadValidationTests(TempMediaMixin, TestCase):
         Profile(full_name="P", resume=pdf_upload("cv.pdf")).full_clean()
         Profile(full_name="P", photo=png_upload("me.png")).full_clean()
 
+    def test_pdf_certificate_with_preview_image(self):
+        cert = Certification.objects.create(name="ISTQB CTFL", issuing_organization="ISTQB",
+                                            certificate=pdf_upload("ctfl.pdf"), preview_image=png_upload("ctfl.png"))
+        self.assertEqual(cert.display_image, cert.preview_image)
+        html = self.client.get(reverse("certifications:list")).content.decode()
+        self.assertIn(f'<img src="{cert.preview_image.url}"', html)          # card thumbnail
+        self.assertIn('data-cert-type="image"', html)                         # preview shows the image
+        self.assertIn(f'data-cert-file="{cert.certificate.url}"', html)       # download = original PDF
+        self.assertIn(f'href="{cert.certificate.url}" download', html)
+
+    def test_image_certificate_is_its_own_preview_and_pdf_without_image_uses_iframe(self):
+        img = Certification.objects.create(name="Scrum", issuing_organization="CertiProf",
+                                           certificate=png_upload("scrum.png"))
+        pdf = Certification.objects.create(name="Plain PDF", issuing_organization="X",
+                                           certificate=pdf_upload("p.pdf"))
+        self.assertEqual(img.display_image, img.certificate)
+        self.assertIsNone(pdf.display_image)
+        html = self.client.get(reverse("certifications:list")).content.decode()
+        self.assertIn('data-cert-type="pdf"', html)
+        self.assertIn("PDF certificate", html)
+
+    def test_award_with_photo_and_certificate_preview(self):
+        from apps.achievements.models import Achievement
+
+        award = Achievement.objects.create(
+            title="Best Performer of the Year 2023-24", organization="BJIT Limited", date=date(2024, 1, 1),
+            image=png_upload("stage.png"), certificate=png_upload("award.png"))
+        html = self.client.get(reverse("core:home")).content.decode()
+        self.assertIn("Best Performer of the Year 2023-24", html)
+        self.assertIn("BJIT Limited &middot; 2024", html)                     # year-only date
+        self.assertIn(f'data-cert-src="{award.certificate.url}"', html)       # Certificate button
+        self.assertIn(f'data-cert-src="{award.image.url}"', html)             # Photo button
+        self.assertEqual(html.count('id="certPreview"'), 1)                   # one shared popup
+
+    def test_browser_icon_files(self):
+        from django.contrib.staticfiles import finders
+
+        home = self.client.get(reverse("core:home")).content.decode()
+        self.assertIn('rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32.png"', home)
+        self.assertIn('rel="apple-touch-icon"', home)
+        for name in ("favicon-32.png", "favicon-192.png", "favicon-512.png", "apple-touch-icon.png", "favicon.ico"):
+            self.assertTrue(finders.find(f"img/{name}"), name)
+        response = self.client.get("/favicon.ico")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("img/favicon.ico"))
+
+    def test_profile_photo_logo_for_admin(self):
+        from io import BytesIO
+
+        from PIL import Image
+
+        self.assertEqual(self.client.get(reverse("favicon", args=[192])).status_code, 404)  # no photo yet
+        Profile.objects.create(full_name="Ovy", photo=png_upload("me.png", size=(400, 520)))
+        response = self.client.get(reverse("favicon", args=[192]))
+        self.assertEqual(response["Content-Type"], "image/png")
+        with Image.open(BytesIO(response.content)) as icon:
+            self.assertEqual(icon.size, (192, 192))
+        self.assertEqual(self.client.get(reverse("favicon", args=[999])).status_code, 404)
+
     def test_certificate_without_date_renders(self):
         Certification.objects.create(name="ISTQB CTFL", issuing_organization="ISTQB")
         response = self.client.get(reverse("certifications:list"))
@@ -112,6 +183,32 @@ class SeoTests(TempMediaMixin, TestCase):
             '<meta name="robots" content="index, follow">',
         ):
             self.assertContains(response, snippet, html=False)
+
+    def test_google_scholar_icon_in_social_links(self):
+        response = self.client.get(reverse("core:home"))
+        self.assertNotContains(response, 'aria-label="Google Scholar"')
+        Profile.objects.update(google_scholar_url="https://scholar.google.com/citations?user=X")
+        response = self.client.get(reverse("core:home"))
+        self.assertContains(response, 'href="https://scholar.google.com/citations?user=X"')
+        self.assertContains(response, "bi-mortarboard-fill")
+
+    def test_soft_wrap_filter_is_safe(self):
+        from apps.core.templatetags.portfolio_extras import soft_wrap
+
+        self.assertEqual(soft_wrap("CI/CD"), "CI/<wbr>CD")
+        escaped = soft_wrap("<script>x</script>")
+        self.assertNotIn("<script>", escaped)
+        self.assertTrue(escaped.startswith("&lt;script&gt;"))
+
+    def test_heading_outline_has_no_skipped_levels(self):
+        import re
+
+        Certification.objects.create(name="C", issuing_organization="O")
+        for url in (reverse("projects:list"), reverse("certifications:list")):
+            html = self.client.get(url).content.decode()
+            levels = [int(n) for n in re.findall(r"<h([1-6])[\s>]", html)]
+            jumps = [(a, b) for a, b in zip(levels, levels[1:]) if b > a + 1]
+            self.assertEqual(jumps, [], url)
 
     def test_canonical_drops_query_strings(self):
         response = self.client.get(reverse("projects:list"), {"utm_source": "x"})

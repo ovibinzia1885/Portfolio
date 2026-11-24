@@ -8,7 +8,6 @@
       {% endfor %}
     </div>
     <div class="text-center mt-4"><a href="{% url 'certifications:list' %}" class="btn btn-ghost">All certifications <i class="bi bi-arrow-right ms-1"></i></a></div>
-    {% include "components/certificate_modal.html" %}
     {% else %}{% include "components/empty_state.html" with icon="bi-award" text="No certifications added yet." %}{% endif %}
   </div>
 </section>

@@ -1,8 +1,13 @@
 {# Expects `cert`. Preview opens the shared #certPreview modal (components/certificate_modal.html). #}
+{% with image=cert.display_image %}
 <article class="card-p hover-lift cert-card">
-  <div class="cert-media">
-    {% if cert.is_image %}
-      <img src="{{ cert.certificate.url }}" alt="{{ cert.name }} certificate" loading="lazy" decoding="async">
+  <div class="cert-media{% if image %} has-image{% endif %}">
+    {% if image %}
+      <button type="button" class="cert-thumb" data-bs-toggle="modal" data-bs-target="#certPreview"
+              data-cert-src="{{ image.url }}" data-cert-type="image" data-cert-title="{{ cert.name }}"
+              data-cert-file="{% if cert.certificate %}{{ cert.certificate.url }}{% else %}{{ image.url }}{% endif %}" aria-label="Preview {{ cert.name }}">
+        <img src="{{ image.url }}" alt="{{ cert.name }} certificate" loading="lazy" decoding="async">
+      </button>
     {% else %}
       <div class="cert-placeholder"><i class="bi {% if cert.is_pdf %}bi-file-earmark-pdf{% else %}bi-patch-check{% endif %}"></i><span>{% if cert.is_pdf %}PDF certificate{% else %}Credential{% endif %}</span></div>
     {% endif %}
@@ -22,14 +27,18 @@
     </p>
     <div class="card-foot">
       {% if cert.certificate or cert.credential_url %}<span class="pill-status">Credential available</span>{% else %}<span class="pill-status">Listed</span>{% endif %}
-      <div class="d-flex gap-3">
+      <div class="d-flex flex-wrap gap-3">
         {% if cert.credential_url %}<a class="link-arrow" href="{{ cert.credential_url }}" target="_blank" rel="noopener noreferrer">Verify <i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
-        {% if cert.certificate %}
+        {% if cert.certificate %}<a class="link-arrow" href="{{ cert.certificate.url }}" download>Download <i class="bi bi-download"></i></a>{% endif %}
+        {% if image or cert.certificate %}
           <button type="button" class="link-arrow" data-bs-toggle="modal" data-bs-target="#certPreview"
-                  data-cert-src="{{ cert.certificate.url }}" data-cert-type="{% if cert.is_pdf %}pdf{% else %}image{% endif %}"
+                  data-cert-src="{% if image %}{{ image.url }}{% else %}{{ cert.certificate.url }}{% endif %}"
+                  data-cert-type="{% if image %}image{% elif cert.is_pdf %}pdf{% else %}image{% endif %}"
+                  data-cert-file="{% if cert.certificate %}{{ cert.certificate.url }}{% else %}{{ image.url }}{% endif %}"
                   data-cert-title="{{ cert.name }}">Preview <i class="bi bi-arrow-right"></i></button>
         {% endif %}
       </div>
     </div>
   </div>
 </article>
+{% endwith %}

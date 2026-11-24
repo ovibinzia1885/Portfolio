@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load portfolio_extras %}
-{% block title %}{{ project.title }} | {{ site_name }}{% endblock %}
+{% block title %}{{ project.title|truncatechars:50 }} | {{ site_name }}{% endblock %}
 {% block og_title %}{{ project.title }}{% endblock %}
-{% block og_description %}{{ project.summary }}{% endblock %}
+{% block og_description %}{{ project.summary|truncatechars:155 }}{% endblock %}
 {% block og_image %}{% with cover=project.cover_image %}{% if cover %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ cover.image.url }}">{% else %}{{ block.super }}{% endif %}{% endwith %}{% endblock %}
-{% block meta_description %}{{ project.summary }}{% endblock %}
+{% block meta_description %}{{ project.summary|truncatechars:155 }}{% endblock %}
 
 {% block content %}
 <header class="page-header">
@@ -14,7 +14,7 @@
       <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ project.title }}</li>
     </ol></nav>
-    <h1 class="section-title">{{ project.title }}</h1>
+    <h1 class="section-title">{{ project.title|soft_wrap }}</h1>
     <p class="section-sub">{{ project.summary }}</p>
   </div>
 </header>

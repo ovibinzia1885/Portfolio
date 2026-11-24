@@ -23,7 +23,14 @@ class Research(OrderedModel):
     venue = models.CharField(
         "Journal / Conference", max_length=250, blank=True
     )
-    publication_date = models.DateField(null=True, blank=True)
+    indexing = models.CharField(
+        "Indexing / Quartile", max_length=60, blank=True,
+        help_text="Optional badge, e.g. 'Q2' or 'Q1 · Scopus'.",
+    )
+    publication_date = models.DateField(
+        null=True, blank=True,
+        help_text="If only the year is known, use 1 January of that year (only the year is shown).",
+    )
     abstract = models.TextField(blank=True)
     doi = models.CharField("DOI", max_length=100, blank=True)
     url = models.URLField(blank=True)
@@ -40,6 +47,14 @@ class Research(OrderedModel):
 
     def get_absolute_url(self):
         return reverse("research:detail", args=[self.slug])
+
+    @property
+    def date_label(self):
+        """'Feb 2024', or just '2024' when only the year is known (stored as 1 January)."""
+        d = self.publication_date
+        if not d:
+            return ""
+        return str(d.year) if (d.month, d.day) == (1, 1) else d.strftime("%b %Y")
 
     def get_download_url(self):
         return reverse("research:download", args=[self.slug])

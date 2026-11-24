@@ -1,0 +1,77 @@
+{% extends "admin/index.html" %}
+{% load portfolio_extras %}
+
+{% block content %}
+{% dashboard as dash %}
+<div class="op-dashboard">
+  <section class="op-hero">
+    <div>
+      <p class="op-eyebrow">// welcome back</p>
+      <h2>{% if dash.profile %}{{ dash.profile.full_name }}{% else %}Your portfolio{% endif %}</h2>
+      <p class="op-sub">{% if dash.profile.headline %}{{ dash.profile.headline }}{% else %}Manage every section of the website from here.{% endif %}</p>
+    </div>
+    <div class="op-hero-actions">
+      {% if site_url %}<a class="op-btn op-btn-primary" href="{{ site_url }}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> View site</a>{% endif %}
+      {% if dash.profile_url %}<a class="op-btn" href="{{ dash.profile_url }}"><i class="bi bi-person-gear"></i> Edit profile &amp; CV</a>{% endif %}
+    </div>
+  </section>
+
+  {% if dash.cards %}
+  <section class="op-cards" aria-label="Content overview">
+    {% for card in dash.cards %}
+    <a class="op-card" href="{{ card.url }}">
+      <span class="op-card-icon"><i class="bi {{ card.icon }}"></i></span>
+      <span class="op-card-count">{{ card.count }}</span>
+      <span class="op-card-label">{{ card.label }}</span>
+      {% if card.extra %}<span class="op-card-extra">{{ card.extra }}</span>{% endif %}
+    </a>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if dash.visits %}{% with v=dash.visits %}
+  <section class="op-visits" aria-label="Visitor statistics">
+    <div class="op-visits-head">
+      <h2><i class="bi bi-graph-up-arrow"></i> Visitors</h2>
+      <a href="{{ v.visitors_url }}">Details <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="op-visit-nums">
+      <div><span>{{ v.today }}</span><small>Today</small></div>
+      <div><span>{{ v.last_7 }}</span><small>Last 7 days</small></div>
+      <div><span>{{ v.last_30 }}</span><small>Last 30 days</small></div>
+      <div><span>{{ v.total }}</span><small>All time</small></div>
+      <div><span>{{ v.page_views_30 }}</span><small>Page views · 30 d</small></div>
+    </div>
+    <div class="op-chart" role="img" aria-label="Visitors per day, last 14 days">
+      {% for day in v.chart %}
+      <div class="op-bar" title="{{ day.date|date:'D j M' }}: {{ day.visitors }} visitor{{ day.visitors|pluralize }}, {{ day.views }} view{{ day.views|pluralize }}">
+        <span class="op-bar-val">{% if day.visitors %}{{ day.visitors }}{% endif %}</span>
+        <span class="op-bar-fill" style="height: {{ day.pct|default:0 }}%"></span>
+        <span class="op-bar-day">{{ day.date|date:"j" }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="op-visit-lists">
+      <div>
+        <h3>Top pages · 30 days</h3>
+        {% for page in v.top_pages %}<p><a href="{{ page.path }}" target="_blank" rel="noopener">{{ page.path }}</a><b>{{ page.total }}</b></p>
+        {% empty %}<p class="op-empty">No visits yet.</p>{% endfor %}
+      </div>
+      <div>
+        <h3>Came from · 30 days</h3>
+        {% for ref in v.top_referrers %}<p><span>{{ ref.referrer }}</span><b>{{ ref.total }}</b></p>
+        {% empty %}<p class="op-empty">Direct visits only so far.</p>{% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endwith %}{% endif %}
+
+  {% if dash.quick %}
+  <section class="op-quick" aria-label="Quick add">
+    <span class="op-quick-title"><i class="bi bi-lightning-charge"></i> Quick add</span>
+    {% for item in dash.quick %}<a class="op-chip" href="{{ item.url }}"><i class="bi bi-plus-lg"></i> {{ item.label }}</a>{% endfor %}
+  </section>
+  {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

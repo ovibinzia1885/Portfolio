@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.core.models import OrderedModel
-from apps.core.validators import document_validators
+from apps.core.validators import document_validators, image_validators
 
 
 class Certification(OrderedModel):
@@ -16,6 +16,11 @@ class Certification(OrderedModel):
         blank=True,
         validators=document_validators,
     )
+    preview_image = models.ImageField(
+        upload_to="certifications/previews/", blank=True, validators=image_validators,
+        help_text="Optional image of a PDF certificate: shown on the card and in Preview "
+                  "(the original file stays the download).",
+    )
 
     class Meta(OrderedModel.Meta):
         ordering = ["display_order", "-issue_date"]
@@ -29,6 +34,13 @@ class Certification(OrderedModel):
     @property
     def is_pdf(self):
         return bool(self.certificate) and self.certificate.name.lower().endswith(".pdf")
+
+    @property
+    def display_image(self):
+        """Image shown on the card / in Preview: preview image, else the certificate itself if it is an image."""
+        if self.preview_image:
+            return self.preview_image
+        return self.certificate if self.is_image else None
 
     def __str__(self):
         return f"{self.name} - {self.issuing_organization}"

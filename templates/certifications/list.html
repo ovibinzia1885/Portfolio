@@ -21,6 +21,7 @@
         <div><p class="mono-label">Latest</p><strong>{% if latest_issue %}{{ latest_issue|date:"M Y" }}{% else %}&mdash;{% endif %}</strong></div>
         <div><p class="mono-label">Proof</p><strong>{{ certifications|length }} credential{{ certifications|length|pluralize }}</strong></div>
       </div>
+      <h2 class="visually-hidden">All certificates</h2>
       <div class="row g-4">
         {% for cert in certifications %}
         <div class="col-md-6 reveal">{% include "components/certificate_card.html" %}</div>

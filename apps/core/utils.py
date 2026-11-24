@@ -11,7 +11,11 @@ def unique_slugify(instance, value, slug_field="slug"):
 
     Falls back to a random token for titles without ASCII/unicode letters.
     """
-    base = slugify(value, allow_unicode=True)[:60] or uuid.uuid4().hex[:8]
+    base = slugify(value, allow_unicode=True)
+    if len(base) > 60:  # cut at a word boundary, never mid-word or with a trailing hyphen
+        cut = base[:61]
+        base = cut[:cut.rfind("-")] if "-" in cut else base[:60]
+    base = base.strip("-") or uuid.uuid4().hex[:8]
     model = instance.__class__
     slug, counter = base, 2
     while model.objects.filter(**{slug_field: slug}).exclude(pk=instance.pk).exists():

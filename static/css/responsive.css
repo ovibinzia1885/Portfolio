@@ -4,7 +4,9 @@
   :root { --nav-h: 60px; }
   body { background-image: none; background-color: var(--bg); }
   .app-shell { display: block; width: auto; margin: 0; border: 0; border-radius: 0; box-shadow: none; max-width: none; }
-  .main-area { min-height: 100vh; }
+  .main-area { min-height: 100vh; min-height: 100dvh; }
+  /* iOS Safari zooms into inputs smaller than 16px when they get focus */
+  .form-control, .form-select { font-size: 16px; }
   .hero { padding-top: calc(var(--nav-h) + 2.5rem); }
   .photo-frame { margin: 0 auto; max-width: 340px; }
 }

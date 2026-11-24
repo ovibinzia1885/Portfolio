@@ -5,17 +5,37 @@
     <div class="row g-4">
       {% for item in achievements %}
       <div class="col-md-6 col-xl-4 reveal">
-        <article class="card-p hover-lift">
-          {% if item.image %}<div class="card-media"><img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy" decoding="async"></div>{% endif %}
+        <article class="card-p hover-lift award-card">
+          {% if item.image %}
+          <button type="button" class="card-media award-media" data-bs-toggle="modal" data-bs-target="#certPreview"
+                  data-cert-src="{{ item.image.url }}" data-cert-type="image" data-cert-title="{{ item.title }}"
+                  aria-label="View photo: {{ item.title }}">
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy" decoding="async">
+          </button>
+          {% endif %}
           <div class="card-body-p">
             <div class="d-flex gap-3">
               <div class="icon-tile"><i class="bi bi-trophy"></i></div>
               <div>
                 <h3 class="h6 mb-1">{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</h3>
-                <p class="meta mb-0">{% if item.organization %}{{ item.organization }} &middot; {% endif %}{{ item.date|date:"M Y" }}</p>
+                <p class="meta mb-0">{% if item.organization %}{{ item.organization }} &middot; {% endif %}{{ item.date_label }}</p>
               </div>
             </div>
-            {% if item.description %}<p class="text-muted small mt-3 mb-0">{{ item.description|truncatewords:30 }}</p>{% endif %}
+            {% if item.description %}<p class="text-muted small mt-3 mb-0">{{ item.description }}</p>{% endif %}
+            {% if item.certificate or item.image %}
+            <div class="d-flex flex-wrap gap-3 mt-3">
+              {% if item.certificate %}
+              <button type="button" class="link-arrow" data-bs-toggle="modal" data-bs-target="#certPreview"
+                      data-cert-src="{{ item.certificate.url }}" data-cert-type="image"
+                      data-cert-title="{{ item.title }} - Certificate">Certificate <i class="bi bi-patch-check"></i></button>
+              {% endif %}
+              {% if item.image %}
+              <button type="button" class="link-arrow" data-bs-toggle="modal" data-bs-target="#certPreview"
+                      data-cert-src="{{ item.image.url }}" data-cert-type="image"
+                      data-cert-title="{{ item.title }}">Photo <i class="bi bi-image"></i></button>
+              {% endif %}
+            </div>
+            {% endif %}
           </div>
         </article>
       </div>

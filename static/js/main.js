@@ -105,8 +105,9 @@
       const src = trigger.dataset.certSrc;
       const title = trigger.dataset.certTitle || "Certificate";
       $("#certPreviewTitle", certModal).textContent = title;
-      $("[data-cert-open]", certModal).href = src;
-      $("[data-cert-download]", certModal).href = src;
+      const file = trigger.dataset.certFile || src; // original file (e.g. the PDF) for open/download
+      $("[data-cert-open]", certModal).href = file;
+      $("[data-cert-download]", certModal).href = file;
       body.replaceChildren();
       if (trigger.dataset.certType === "pdf") {
         const frame = document.createElement("iframe");

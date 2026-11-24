@@ -44,6 +44,10 @@ class Profile(TimeStampedModel):
     )
     github_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
+    google_scholar_url = models.URLField("Google Scholar URL", blank=True)
+    show_visitor_count = models.BooleanField(
+        default=True, help_text="Show the total number of visitors in the website footer."
+    )
     facebook_url = models.URLField(blank=True)
     twitter_url = models.URLField(blank=True)
 

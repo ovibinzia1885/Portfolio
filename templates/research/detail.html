@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ paper.title }} | {{ site_name }}{% endblock %}
+{% load portfolio_extras %}
+{% block title %}{{ paper.title|truncatechars:50 }} | {{ site_name }}{% endblock %}
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ paper.title }}{% endblock %}
-{% block og_description %}{{ paper.abstract|truncatewords:30|default:paper.title }}{% endblock %}
-{% block meta_description %}{{ paper.abstract|truncatewords:30|default:paper.title }}{% endblock %}
+{% block og_description %}{{ paper.abstract|default:paper.title|truncatechars:155 }}{% endblock %}
+{% block meta_description %}{{ paper.abstract|default:paper.title|truncatechars:155 }}{% endblock %}
 
 {% block content %}
 <header class="page-header">
@@ -13,9 +14,9 @@
       <li class="breadcrumb-item"><a href="{% url 'research:list' %}">Research</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ paper.title|truncatechars:40 }}</li>
     </ol></nav>
-    <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>
-    <h1 class="section-title">{{ paper.title }}</h1>
-    <p class="meta mb-0"><i class="bi bi-people"></i>{{ paper.authors }}</p>
+    <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>{% if paper.indexing %}<span class="chip chip-accent ms-1"><i class="bi bi-award me-1"></i>{{ paper.indexing }}</span>{% endif %}
+    <h1 class="section-title">{{ paper.title|soft_wrap }}</h1>
+    <p class="meta mb-0"><i class="bi bi-people"></i>{{ paper.authors|highlight_author:profile }}</p>
   </div>
 </header>
 
@@ -23,7 +24,7 @@
   <div class="container" style="max-width: 900px;">
     <div class="card-p sidebar-card">
       {% if paper.venue %}<div class="fact"><i class="bi bi-book"></i><div><small>Published in</small><span>{{ paper.venue }}</span></div></div>{% endif %}
-      {% if paper.publication_date %}<div class="fact"><i class="bi bi-calendar3"></i><div><small>Date</small><span>{{ paper.publication_date|date:"F Y" }}</span></div></div>{% endif %}
+      {% if paper.publication_date %}<div class="fact"><i class="bi bi-calendar3"></i><div><small>Date</small><span>{{ paper.date_label }}</span></div></div>{% endif %}
       {% if paper.doi %}<div class="fact"><i class="bi bi-link-45deg"></i><div><small>DOI</small><a href="https://doi.org/{{ paper.doi }}" target="_blank" rel="noopener noreferrer">{{ paper.doi }}</a></div></div>{% endif %}
     </div>
 

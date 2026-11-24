@@ -44,7 +44,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 # --- Applications --------------------------------------------------------
 DJANGO_APPS = [
-    "django.contrib.admin",
+    "config.admin.PortfolioAdminConfig",  # django.contrib.admin with "Ovy Portfolio" branding
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -65,6 +65,7 @@ LOCAL_APPS = [
     "apps.blogs",
     "apps.research",
     "apps.contact",
+    "apps.analytics",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -77,7 +78,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.analytics.middleware.VisitorCounterMiddleware",  # anonymous visitor counting
 ]
+
+# Visitor counting: set True only behind a trusted reverse proxy that sets X-Forwarded-For
+TRUST_X_FORWARDED_FOR = config("TRUST_X_FORWARDED_FOR", default=False, cast=bool)
 
 ROOT_URLCONF = "config.urls"
 

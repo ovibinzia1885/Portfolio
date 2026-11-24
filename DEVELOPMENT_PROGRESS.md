@@ -101,6 +101,70 @@ Full report: [docs/QA_REPORT.md](docs/QA_REPORT.md)
       lazy/async images, hashed static files in production
 - [x] 9 defects found and fixed (D1-D9 in the QA report)
 
+### Change request 8 - Research from Google Scholar (2026-11-24)
+- [x] 10 papers imported (Scholar profile + Crossref for DOI papers), ordered: Q2 journal first, then
+      Healthcare Analytics, then first-author papers, then co-author papers (order editable via display_order)
+- [x] New `Research.indexing` field (Q2 badge), year-only dates shown as "2021", owner's name bold in author lists
+- [x] Slugs now cut at a word boundary (no trailing hyphen); 121 tests passing
+- [ ] Owner to confirm: Healthcare Analytics quartile, missing years (2 papers), abstracts for 9 papers
+
+### Change request 9 - Experience & logos (2026-11-24)
+- [x] New experience: SIMEC System Ltd (Nov 2026 - present, contract); BJIT end date set to Oct 2026
+- [x] Company logos (BJIT, SIMEC System, Bangladesh Army) and client logos on projects (Valmet, Sparkasse)
+- [x] `Profile.google_scholar_url` + Scholar icon in social links; research abstract added (2023 JMR paper, draft)
+- [x] Removed 21 orphaned sample media files; 122 tests passing
+
+### Change request 10 - Certificates from CV links (2026-11-24)
+- [x] 5 certificates downloaded from the CV links (ISTQB, Scrum, SQAT, Soft Skills, Django) with real dates/IDs
+- [x] New `Certification.preview_image`: PDF certificates show an image on the card + in Preview, Download = original
+- [x] Cards show the whole certificate ("fit", click to zoom); Download link on every card; 124 tests passing
+- [ ] Information Security Training: CV link points to the Django certificate (no own file yet)
+
+### Change request 11 - Awards, photo, cache (2026-11-24)
+- [x] Award "Best Performer of the Year 2023-24" (BJIT) with stage photo + certificate (new
+      `Achievement.certificate`, year-only date label, Photo/Certificate open in the shared preview popup)
+- [x] Preview popup included once on the home page (used by certificates and awards)
+- [x] Hero photo: colour by default, black & white on hover
+- [x] Dev cache-busting: CSS/JS links get `?v=<mtime>` when DEBUG (production uses hashed names); 125 tests passing
+
+### Change request 12 - Admin redesign (2026-11-24)
+- [x] Admin branded "Ovy Portfolio" (custom `PortfolioAdminSite` in `config/admin.py`, header/login/title)
+- [x] Lime/dark theme for the admin (`static/css/admin.css`, light + dark mode), friendly app names,
+      apps ordered like the website
+- [x] Dashboard on the admin home: profile hero, content counters (unread messages), quick-add buttons;
+      126 tests passing
+
+### Change request 13 - Photo favicon (2026-11-24)
+- [x] Browser/app icon = bug + magnifier (`static/img/favicon-32/192/512.png`, `apple-touch-icon.png`,
+      `favicon.ico`; transparent background, bolder strokes for small tab sizes; `/favicon.ico` redirects)
+- [x] Admin header logo uses the profile photo (generated square from the photo); 128 tests passing
+
+### Final QA cycle (2026-11-24)
+Full report: [docs/QA_REPORT_FINAL.md](docs/QA_REPORT_FINAL.md). Verdict: ready for deployment preparation.
+- [x] 130/130 tests, 26 pages + 24 assets crawled (0 broken), 190 admin pages (0 errors), 21 external links,
+      8 widths x 21 pages responsive (0 issues), WCAG AA contrast (all pass), deploy check (2 accepted warnings)
+- [x] 6 defects fixed (QA2-01..06): mobile title overflow, heading outline, SEO title/description length,
+      tap targets, mobile top-bar photo
+- [ ] Owner: rename `admin`, remove unused user `ovy`, fill content gaps (see report section 6)
+
+### Change request 14 - Visitor counter (2026-11-24)
+- [x] New app `apps/analytics`: middleware counts public HTML page views; a visitor = unique per day via an
+      anonymous daily hash (no IP, cookie or browser string stored). Not counted: bots, prefetch, staff (owner),
+      admin, static/media, sitemap/robots, errors, POST
+- [x] Admin dashboard "Visitors" panel: today / 7 / 30 days / all time, page views, 14-day chart,
+      top pages, referrer sites; read-only admin lists (Visitor Statistics)
+- [x] Footer counter "N visitors" (hidden while 0; `Profile.show_visitor_count` toggle); 140 tests passing
+- Production behind a proxy: set `TRUST_X_FORWARDED_FOR=True`
+
+### Change request 15 - iOS / touch polish (2026-11-24)
+- [x] Inputs 16px below 1200px (stops iOS Safari auto-zoom on focus); `100dvh` with `100vh` fallback
+      (no jump with the moving address bar); `text-size-adjust: 100%`
+- [x] Hover effects (photo B&W, card lift, image zoom) only on devices with a real mouse
+      (`@media (hover: hover) and (pointer: fine)`), so taps on iPhone/Android don't leave them stuck
+- [x] `apple-mobile-web-app-title` for the iPhone home-screen icon; CV page already offers
+      "Open in new tab" (iOS shows only page 1 of a PDF inside a page)
+- [ ] Not verifiable here: real iOS Safari (WebKit). Checked in Chromium at 8 widths; check once on an iPhone
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`

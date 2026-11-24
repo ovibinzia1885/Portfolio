@@ -1,7 +1,7 @@
 {# Mobile / tablet (< 1200px): fixed top bar + off-canvas menu. Desktop uses the sidebar in base.html. #}
 <header class="topbar d-xl-none">
   <a class="side-brand" href="{% url 'core:home' %}">
-    <span class="brand-mark">{{ site_name|slice:":1"|upper }}</span>
+    {% if profile and profile.photo %}<img src="{{ profile.photo.url }}" alt="" width="42" height="42">{% else %}<span class="brand-mark">{{ site_name|slice:":1"|upper }}</span>{% endif %}
     <span><strong>{{ site_name }}</strong></span>
   </a>
   <div class="d-flex gap-2">

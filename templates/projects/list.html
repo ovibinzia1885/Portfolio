@@ -18,7 +18,7 @@
 <div class="page-body">
   <div class="container">
     {% if projects %}
-      {% for group in project_groups %}{% include "components/project_group.html" %}{% endfor %}
+      {% for group in project_groups %}{% include "components/project_group.html" with heading="h2" %}{% endfor %}
     {% else %}{% include "components/empty_state.html" with icon="bi-kanban" text="No projects yet." %}{% endif %}
   </div>
 </div>

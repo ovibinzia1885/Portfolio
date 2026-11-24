@@ -7,10 +7,10 @@
       {% for paper in papers %}
       <div class="col-lg-6 reveal">
         <article class="card-p hover-lift"><div class="card-body-p">
-          <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>
-          <h3 class="h5 stretched-link-title mt-2"><a href="{{ paper.get_absolute_url }}">{{ paper.title }}</a></h3>
-          <p class="meta mb-2"><i class="bi bi-people"></i>{{ paper.authors }}</p>
-          <p class="meta mb-2">{% if paper.venue %}<i class="bi bi-book"></i>{{ paper.venue }}{% endif %}{% if paper.publication_date %} &middot; {{ paper.publication_date|date:"M Y" }}{% endif %}</p>
+          <span class="chip chip-accent">{{ paper.get_publication_type_display }}</span>{% if paper.indexing %}<span class="chip chip-accent ms-1"><i class="bi bi-award me-1"></i>{{ paper.indexing }}</span>{% endif %}
+          <h3 class="h5 stretched-link-title mt-2"><a href="{{ paper.get_absolute_url }}">{{ paper.title|soft_wrap }}</a></h3>
+          <p class="meta mb-2"><i class="bi bi-people"></i>{{ paper.authors|highlight_author:profile }}</p>
+          <p class="meta mb-2">{% if paper.venue %}<i class="bi bi-book"></i>{{ paper.venue }}{% endif %}{% if paper.publication_date %} &middot; {{ paper.date_label }}{% endif %}</p>
           {% if paper.abstract %}<p class="text-muted small">{{ paper.abstract|truncatewords:28 }}</p>{% endif %}
           <div class="d-flex flex-wrap gap-2 mt-2">
             <a class="btn btn-ghost btn-sm" href="{{ paper.get_absolute_url }}">Read abstract</a>

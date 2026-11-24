@@ -43,6 +43,39 @@ class ResearchModelUrlTests(TempMediaMixin, TestCase):
         self.assertEqual(len(invalid.context["papers"]), 2)
 
 
+class ResearchDisplayTests(TestCase):
+    def test_date_label_year_only_or_month(self):
+        from datetime import date
+
+        self.assertEqual(Research(publication_date=date(2021, 1, 1)).date_label, "2021")
+        self.assertEqual(Research(publication_date=date(2024, 2, 7)).date_label, "Feb 2024")
+        self.assertEqual(Research(publication_date=None).date_label, "")
+
+    def test_long_title_slug_cut_at_word_boundary(self):
+        paper = Research.objects.create(
+            title="Exploring Machine Learning for Predicting Cerebral Stroke: A Study in Discovery", authors="A")
+        self.assertLessEqual(len(paper.slug), 60)
+        self.assertFalse(paper.slug.endswith("-"))
+        self.assertTrue("exploring-machine-learning-for-predicting-cerebral-stroke-a".startswith(paper.slug))
+
+    def test_indexing_badge_and_owner_highlight(self):
+        from apps.core.models import Profile
+
+        Profile.objects.create(full_name="Nazmul Hoque Ovy")
+        Research.objects.create(title="Q2 paper", authors="R Mia, Nazmul Hoque Ovy, <script>x</script>",
+                                indexing="Q2")
+        response = self.client.get(reverse("research:list"))
+        self.assertContains(response, "<strong>Nazmul Hoque Ovy</strong>", html=False)
+        self.assertContains(response, "Q2")
+        self.assertNotContains(response, "<script>x</script>")  # author text stays escaped
+
+    def test_display_order_controls_listing(self):
+        second = Research.objects.create(title="B", authors="A", display_order=2)
+        first = Research.objects.create(title="A", authors="A", display_order=1)
+        response = self.client.get(reverse("research:list"))
+        self.assertEqual(list(response.context["papers"]), [first, second])
+
+
 class ResearchAdminTests(TempMediaMixin, AdminClientMixin, TestCase):
     def data(self, **extra):
         values = {"title": "Admin paper", "slug": "", "authors": "A", "publication_type": "journal",
