@@ -53,6 +53,20 @@
       (`Project.project_type`, optional `client_name`) on the homepage and `/projects/`;
       each part has its own technology filter and empty-state message. 27 tests passing.
 
+### Change request 4 - PostgreSQL (2026-11-24)
+- [x] PostgreSQL 18 installed locally (winget, service `postgresql-x64-18`, port 5432)
+- [x] Database `portfolio`, role `portfolio_user` (CREATEDB for tests); credentials only in `.env` (git-ignored)
+- [x] `psycopg[binary]` added; settings now read `DATABASE_URL` from `.env` (fixed: previously ignored `.env`)
+- [x] All existing SQLite data migrated (89 objects, counts verified); `db.sqlite3` kept as a local backup
+- [x] 27 tests pass on PostgreSQL
+- To switch back to SQLite: remove the `DATABASE_URL` line from `.env`
+
+### Change request 5 - CV preview + download (2026-11-24)
+- [x] `/cv/` preview page (PDF embedded in an iframe) with Download and Open-in-new-tab buttons
+- [x] `/cv/view/` serves the PDF inline, `/cv/download/` serves it as attachment
+- [x] "Preview CV" buttons in Hero, About and Footer (only when the CV is a PDF; non-PDF files fall back to download)
+- [x] 30 tests passing
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`

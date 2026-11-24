@@ -22,6 +22,7 @@
           <li><a href="{% url 'blogs:list' %}">Blog</a></li>
           <li><a href="{% url 'research:list' %}">Research</a></li>
           <li><a href="{% url 'contact:contact' %}">Contact</a></li>
+          {% if profile and profile.resume_is_pdf %}<li><a href="{% url 'core:cv_preview' %}">Preview CV</a></li>{% endif %}
           {% if profile and profile.resume %}<li><a href="{% url 'core:download_cv' %}">Download CV</a></li>{% endif %}
         </ul>
       </div>

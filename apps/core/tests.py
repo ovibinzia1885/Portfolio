@@ -193,6 +193,32 @@ class SiteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("attachment", response["Content-Disposition"])
 
+    def test_cv_preview_page_and_inline_pdf(self):
+        page = self.client.get(reverse("core:cv_preview"))
+        self.assertContains(page, "<iframe")
+        self.assertContains(page, reverse("core:cv_inline"))
+        self.assertContains(page, reverse("core:download_cv"))
+        inline = self.client.get(reverse("core:cv_inline"))
+        self.assertEqual(inline.status_code, 200)
+        self.assertEqual(inline["Content-Type"], "application/pdf")
+        self.assertNotIn("attachment", inline.get("Content-Disposition", ""))
+        self.assertTrue(b"".join(inline.streaming_content).startswith(b"%PDF"))
+        # the iframe on our own page must not be blocked by X-Frame-Options
+        self.assertEqual(inline["X-Frame-Options"], "SAMEORIGIN")
+
+    def test_cv_buttons_on_home(self):
+        response = self.client.get(reverse("core:home"))
+        self.assertContains(response, "Preview CV")
+        self.assertContains(response, "Download CV")
+
+    def test_cv_non_pdf_preview_redirects_to_download(self):
+        profile = Profile.objects.first()
+        profile.resume.save("cv.docx", ContentFile(b"docx"), save=True)
+        self.assertRedirects(self.client.get(reverse("core:cv_preview")), reverse("core:download_cv"),
+                             fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("core:cv_inline")).status_code, 404)
+        self.assertNotContains(self.client.get(reverse("core:home")), "Preview CV")
+
     def test_cv_missing_404(self):
         Profile.objects.update(resume="")
         self.assertEqual(self.client.get(reverse("core:download_cv")).status_code, 404)

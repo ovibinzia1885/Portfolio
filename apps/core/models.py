@@ -42,5 +42,10 @@ class Profile(TimeStampedModel):
     facebook_url = models.URLField(blank=True)
     twitter_url = models.URLField(blank=True)
 
+    @property
+    def resume_is_pdf(self):
+        """True when a PDF CV is uploaded (only PDFs can be previewed in the browser)."""
+        return bool(self.resume) and self.resume.name.lower().endswith(".pdf")
+
     def __str__(self):
         return self.full_name

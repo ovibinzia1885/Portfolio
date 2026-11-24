@@ -1,4 +1,5 @@
 from django.http import FileResponse, Http404
+from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
 from apps.achievements.models import Achievement
@@ -73,13 +74,39 @@ class HomeView(TemplateView):
         return context
 
 
-def download_cv(request):
-    """Serve the uploaded CV as an attachment."""
+def _profile_with_cv():
     profile = Profile.objects.first()
     if not profile or not profile.resume:
         raise Http404("No CV uploaded.")
+    return profile
+
+
+def download_cv(request):
+    """Serve the uploaded CV as an attachment."""
+    profile = _profile_with_cv()
     return FileResponse(
         profile.resume.open("rb"),
         as_attachment=True,
+        filename=profile.resume.name.split("/")[-1],
+    )
+
+
+def cv_preview(request):
+    """Page that embeds the CV (PDF) with preview and download buttons."""
+    profile = _profile_with_cv()
+    if not profile.resume_is_pdf:  # non-PDF files cannot be previewed
+        return redirect("core:download_cv")
+    return render(request, "core/cv.html", {"cv_name": profile.resume.name.split("/")[-1]})
+
+
+def cv_inline(request):
+    """Serve the PDF inline so it can be shown inside the preview page."""
+    profile = _profile_with_cv()
+    if not profile.resume_is_pdf:
+        raise Http404("CV is not a PDF.")
+    return FileResponse(
+        profile.resume.open("rb"),
+        as_attachment=False,
+        content_type="application/pdf",
         filename=profile.resume.name.split("/")[-1],
     )

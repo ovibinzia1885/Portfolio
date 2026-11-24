@@ -21,7 +21,10 @@
             {% if profile.phone %}<div class="fact"><i class="bi bi-telephone"></i><div><small>Phone</small><a href="tel:{{ profile.phone }}">{{ profile.phone }}</a></div></div>{% endif %}
           {% endif %}
           {% if profile and profile.resume %}
-            <a href="{% url 'core:download_cv' %}" class="btn btn-grad w-100 mt-3"><i class="bi bi-download me-2"></i>Download CV</a>
+            <div class="d-grid gap-2 mt-3">
+              {% if profile.resume_is_pdf %}<a href="{% url 'core:cv_preview' %}" class="btn btn-ghost"><i class="bi bi-eye me-2"></i>Preview CV</a>{% endif %}
+              <a href="{% url 'core:download_cv' %}" class="btn btn-grad"><i class="bi bi-download me-2"></i>Download CV</a>
+            </div>
           {% endif %}
         </div></div>
       </div>
