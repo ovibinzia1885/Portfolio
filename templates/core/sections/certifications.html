@@ -1,28 +1,14 @@
-<section id="certifications" class="section section-alt" aria-label="certifications">
+<section id="certifications" class="section" aria-label="certifications">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Certifications" title="Licenses & certificates" subtitle="Verified credentials." %}
+    {% include "components/section_title.html" with eyebrow="Credentials & courses" title="Certifications" subtitle="Verified credentials. Click preview to view the certificate." %}
     {% if certifications %}
     <div class="row g-4">
       {% for cert in certifications %}
-      <div class="col-md-6 col-xl-4 reveal">
-        <article class="card-p hover-lift"><div class="card-body-p">
-          <div class="d-flex gap-3">
-            <div class="icon-tile"><i class="bi bi-patch-check"></i></div>
-            <div>
-              <h3 class="h6 mb-1">{{ cert.name }}</h3>
-              <p class="mb-1">{{ cert.issuing_organization }}</p>
-              <p class="meta mb-0"><i class="bi bi-calendar3"></i>Issued {{ cert.issue_date|date:"M Y" }}{% if cert.expiry_date %} &middot; Expires {{ cert.expiry_date|date:"M Y" }}{% endif %}</p>
-              {% if cert.credential_id %}<p class="meta mb-0">ID: {{ cert.credential_id }}</p>{% endif %}
-            </div>
-          </div>
-          <div class="d-flex flex-wrap gap-2 mt-3">
-            {% if cert.credential_url %}<a class="btn btn-ghost btn-sm" href="{{ cert.credential_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>Verify</a>{% endif %}
-            {% if cert.certificate %}<a class="btn btn-ghost btn-sm" href="{{ cert.certificate.url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-file-earmark-check me-1"></i>Certificate</a>{% endif %}
-          </div>
-        </div></article>
-      </div>
+      <div class="col-md-6 reveal">{% include "components/certificate_card.html" %}</div>
       {% endfor %}
     </div>
-    {% else %}{% include "components/empty_state.html" with icon="bi-patch-check" text="No certifications added yet." %}{% endif %}
+    <div class="text-center mt-4"><a href="{% url 'certifications:list' %}" class="btn btn-ghost">All certifications <i class="bi bi-arrow-right ms-1"></i></a></div>
+    {% include "components/certificate_modal.html" %}
+    {% else %}{% include "components/empty_state.html" with icon="bi-award" text="No certifications added yet." %}{% endif %}
   </div>
 </section>

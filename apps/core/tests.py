@@ -1,5 +1,6 @@
 """Day 2 functional tests: pages, dynamic content, blog, research, contact, downloads."""
 
+import os
 import re
 import shutil
 import tempfile
@@ -47,8 +48,15 @@ class SiteTests(TestCase):
             self.assertContains(response, f'id="{section_id}"')
 
     def test_home_empty_database_still_renders(self):
-        call_command("seed_demo", "--clear", verbosity=0)
-        Profile.objects.all().delete()
+        # Delete rows only (rolled back after the test). Not `seed_demo --clear`, which
+        # also deletes the shared media files that later tests still need.
+        from django.apps import apps as django_apps
+        for model in django_apps.get_app_config("core").get_models():
+            model.objects.all().delete()
+        for label in ("education", "experience", "skills", "projects", "achievements",
+                      "certifications", "training", "blogs", "research"):
+            for model in django_apps.get_app_config(label).get_models():
+                model.objects.all().delete()
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No featured projects")
@@ -77,7 +85,8 @@ class SiteTests(TestCase):
     def test_all_internal_links_resolve(self):
         """Crawl href/src of the main pages; every internal target must return 200."""
         pages = [reverse("core:home"), reverse("projects:list"), reverse("blogs:list"),
-                 reverse("research:list"), reverse("contact:contact")]
+                 reverse("research:list"), reverse("contact:contact"), reverse("certifications:list"),
+                 reverse("core:cv_preview")]
         pages += [p.get_absolute_url() for p in Project.objects.all()]
         pages += [p.get_absolute_url() for p in BlogPost.objects.published()]
         pages += [reverse("research:detail", args=[r.pk]) for r in Research.objects.all()]
@@ -123,6 +132,61 @@ class SiteTests(TestCase):
         Project.objects.filter(project_type="personal").delete()
         response = self.client.get(reverse("projects:list"))
         self.assertContains(response, "No projects in this group yet.")
+
+    # ---- certifications ------------------------------------------------------
+    def test_certifications_page(self):
+        response = self.client.get(reverse("certifications:list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Example Authority")
+        self.assertContains(response, "3 credentials")
+        self.assertContains(response, 'data-cert-type="image"')
+        self.assertContains(response, 'data-cert-type="pdf"')
+        self.assertContains(response, 'id="certPreview"')
+        self.assertContains(response, "Credential available")
+
+    def test_certification_without_file_has_no_preview(self):
+        from apps.certifications.models import Certification
+        Certification.objects.all().delete()
+        Certification.objects.create(name="Plain", issuing_organization="Org", issue_date=date(2024, 1, 1))
+        response = self.client.get(reverse("certifications:list"))
+        self.assertNotContains(response, "data-cert-src")
+        self.assertContains(response, "Listed")
+
+    def test_seed_clear_removes_only_sample_files(self):
+        # Isolated MEDIA_ROOT so the shared test media used by other tests is untouched.
+        from apps.certifications.models import Certification
+        isolated = tempfile.mkdtemp()
+        try:
+            with self.settings(MEDIA_ROOT=isolated):
+                own = Certification.objects.create(name="Mine", issuing_organization="Org", issue_date=date(2024, 1, 1))
+                own.certificate.save("my-real-cert.png", ContentFile(b"x"), save=True)
+                sample = Certification.objects.create(name="[Sample] X", issuing_organization="Org", issue_date=date(2024, 1, 1))
+                sample.certificate.save("sample-x.png", ContentFile(b"x"), save=True)
+                sample_path, own_path = sample.certificate.path, own.certificate.path
+                call_command("seed_demo", "--clear", verbosity=0)
+                self.assertFalse(Certification.objects.filter(pk=sample.pk).exists())
+                self.assertTrue(Certification.objects.filter(pk=own.pk).exists())
+                self.assertFalse(os.path.exists(sample_path))
+                self.assertTrue(os.path.exists(own_path))
+        finally:
+            shutil.rmtree(isolated, ignore_errors=True)
+
+    def test_sample_pdf_is_viewer_compatible(self):
+        # browsers' PDF viewers need a cross-reference table; our earlier hand-written stub had none
+        self.assertTrue(SAMPLE_PDF.startswith(b"%PDF"))
+        self.assertIn(b"xref", SAMPLE_PDF)
+        self.assertTrue(SAMPLE_PDF.rstrip().endswith(b"%%EOF"))
+
+    def test_certifications_empty(self):
+        from apps.certifications.models import Certification
+        Certification.objects.all().delete()
+        self.assertContains(self.client.get(reverse("certifications:list")), "No certifications added yet.")
+
+    def test_sidebar_navigation_present(self):
+        response = self.client.get(reverse("core:home"))
+        self.assertContains(response, 'class="sidebar')
+        self.assertContains(response, 'id="mobileNav"')
+        self.assertContains(response, reverse("certifications:list"))
 
     def test_project_unknown_slug_404(self):
         self.assertEqual(self.client.get("/projects/nope/").status_code, 404)

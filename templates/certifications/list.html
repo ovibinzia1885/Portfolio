@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Certifications | {{ site_name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div class="container">
+    <div>
+      <span class="eyebrow">Credentials &amp; courses</span>
+      <h1 class="section-title mb-0">Certifications</h1>
+    </div>
+  </div>
+</header>
+
+<div class="page-body">
+  <div class="container">
+    {% if certifications %}
+      <div class="stat-strip mb-4">
+        <div><p class="mono-label">Provider{{ providers|length|pluralize }}</p><strong>{{ providers|slice:":2"|join:", " }}{% if providers|length > 2 %} +{{ providers|length|add:"-2" }}{% endif %}</strong></div>
+        <div><p class="mono-label">Latest</p><strong>{{ latest_issue|date:"M Y" }}</strong></div>
+        <div><p class="mono-label">Proof</p><strong>{{ certifications|length }} credential{{ certifications|length|pluralize }}</strong></div>
+      </div>
+      <div class="row g-4">
+        {% for cert in certifications %}
+        <div class="col-md-6 reveal">{% include "components/certificate_card.html" %}</div>
+        {% endfor %}
+      </div>
+      {% include "components/certificate_modal.html" %}
+    {% else %}
+      {% include "components/empty_state.html" with icon="bi-award" text="No certifications added yet." %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

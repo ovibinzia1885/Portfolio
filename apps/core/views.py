@@ -58,7 +58,8 @@ class HomeView(TemplateView):
             project_groups=group_projects(featured),
             has_featured_projects=bool(featured),
             achievements=Achievement.objects.all()[:6],
-            certifications=Certification.objects.all(),
+            certifications=Certification.objects.all()[:4],
+            hero_skills=Skill.objects.filter(main_category=MainCategory.TECHNICAL)[:5],
             trainings=Training.objects.all(),
             latest_posts=(
                 BlogPost.objects.published().select_related("category")[:3]

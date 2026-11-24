@@ -1,0 +1,30 @@
+{# Shared by the desktop sidebar and the mobile off-canvas menu. #}
+{% url 'core:home' as home_url %}
+{% with app=request.resolver_match.app_name %}
+<a class="side-brand" href="{{ home_url }}">
+  {% if profile and profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<span class="brand-mark">{{ site_name|slice:":1"|upper }}</span>{% endif %}
+  <span><strong>{{ site_name }}</strong><small>{% if profile and profile.headline %}{{ profile.headline|truncatechars:28 }}{% else %}Portfolio{% endif %}</small></span>
+</a>
+
+<p class="side-label">Navigation</p>
+<ul class="snav">
+  <li><a class="snav-link" data-spy="hero" href="{{ home_url }}#hero"><span class="n">01</span><i class="bi bi-house"></i>Home</a></li>
+  <li><a class="snav-link" data-spy="about" href="{{ home_url }}#about"><span class="n">02</span><i class="bi bi-person"></i>About</a></li>
+  <li><a class="snav-link" data-spy="education" href="{{ home_url }}#education"><span class="n">03</span><i class="bi bi-mortarboard"></i>Education</a></li>
+  <li><a class="snav-link" data-spy="experience" href="{{ home_url }}#experience"><span class="n">04</span><i class="bi bi-briefcase"></i>Experience</a></li>
+  <li><a class="snav-link" data-spy="skills" href="{{ home_url }}#skills"><span class="n">05</span><i class="bi bi-tools"></i>Skills</a></li>
+  <li><a class="snav-link {% if app == 'projects' %}active{% endif %}" data-spy="projects" href="{% if app == 'projects' %}{% url 'projects:list' %}{% else %}{{ home_url }}#projects{% endif %}"><span class="n">06</span><i class="bi bi-layers"></i>Projects</a></li>
+  <li><a class="snav-link {% if app == 'certifications' %}active{% endif %}" href="{% url 'certifications:list' %}"><span class="n">07</span><i class="bi bi-award"></i>Certifications</a></li>
+  <li><a class="snav-link {% if app == 'blogs' %}active{% endif %}" href="{% url 'blogs:list' %}"><span class="n">08</span><i class="bi bi-journal-text"></i>Blog</a></li>
+  <li><a class="snav-link {% if app == 'research' %}active{% endif %}" href="{% url 'research:list' %}"><span class="n">09</span><i class="bi bi-file-earmark-text"></i>Research</a></li>
+  <li><a class="snav-link {% if app == 'contact' %}active{% endif %}" data-spy="contact" href="{{ home_url }}#contact"><span class="n">10</span><i class="bi bi-chat-dots"></i>Contact</a></li>
+</ul>
+
+<div class="side-foot">
+  <p class="status-line"><span class="status-dot"></span>Available for work</p>
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    {% include "components/social_links.html" %}
+    <button class="icon-btn theme-toggle flex-shrink-0" type="button" aria-label="Toggle theme"><i class="bi bi-sun"></i></button>
+  </div>
+</div>
+{% endwith %}

@@ -12,7 +12,7 @@ from datetime import date, timedelta
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 from PIL import Image, ImageDraw
 
@@ -36,20 +36,8 @@ PALETTES = [
     ((245, 158, 11), (239, 68, 68)),
 ]
 
-# Minimal valid one-page PDF used as a placeholder CV / paper.
-SAMPLE_PDF = (
-    b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
-    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
-    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 144]/Contents 4 0 R"
-    b"/Resources<</Font<</F1 5 0 R>>>>>>endobj\n"
-    b"4 0 obj<</Length 56>>stream\nBT /F1 14 Tf 20 70 Td (SAMPLE PLACEHOLDER PDF) Tj ET\nendstream endobj\n"
-    b"5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n"
-    b"trailer<</Root 1 0 R/Size 6>>\n%%EOF\n"
-)
-
-
-def make_image(label, index=0, size=(1200, 750)):
-    """Gradient placeholder image with a label; returns PNG bytes."""
+def _gradient(label, index=0, size=(1200, 750)):
+    """Gradient placeholder image with a label (PIL Image)."""
     c1, c2 = PALETTES[index % len(PALETTES)]
     width, height = size
     img = Image.new("RGB", size)
@@ -58,9 +46,25 @@ def make_image(label, index=0, size=(1200, 750)):
         t = x / (width - 1)
         draw.line([(x, 0), (x, height)], fill=tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3)))
     draw.text((width // 2, height // 2), label, fill="white", anchor="mm")
+    return img
+
+
+def make_image(label, index=0, size=(1200, 750)):
+    """PNG bytes of a gradient placeholder."""
     buf = io.BytesIO()
-    img.save(buf, "PNG")
+    _gradient(label, index, size).save(buf, "PNG")
     return buf.getvalue()
+
+
+def make_pdf(label="SAMPLE PLACEHOLDER PDF", index=0):
+    """A real, viewer-compatible one-page A4 PDF (rendered by Pillow)."""
+    buf = io.BytesIO()
+    _gradient(label, index, (1240, 1754)).save(buf, "PDF", resolution=150)
+    return buf.getvalue()
+
+
+# Placeholder CV / paper / certificate PDF.
+SAMPLE_PDF = make_pdf()
 
 
 def png(label, index=0, size=(1200, 750)):
@@ -91,11 +95,29 @@ class Command(BaseCommand):
             (Certification, "name"), (Training, "title"), (BlogPost, "title"),
             (BlogCategory, "name"), (BlogTag, "name"), (Research, "title"),
         ]
-        total = 0
+        total = files = 0
         for model, field in targets:
-            deleted, _ = model.objects.filter(**{f"{field}__startswith": MARK}).delete()
+            queryset = model.objects.filter(**{f"{field}__startswith": MARK})
+            for obj in queryset:
+                files += self.delete_files(obj)
+                if model is Project:  # project images are separate rows
+                    for image in obj.images.all():
+                        files += self.delete_files(image)
+            deleted, _ = queryset.delete()
             total += deleted
-        self.stdout.write(self.style.SUCCESS(f"Removed {total} sample records."))
+        self.stdout.write(self.style.SUCCESS(f"Removed {total} sample records and {files} files."))
+
+    @staticmethod
+    def delete_files(obj):
+        """Delete uploaded files of a sample record (only files created by this command)."""
+        count = 0
+        for field in obj._meta.get_fields():
+            if isinstance(field, models.FileField):
+                file = getattr(obj, field.name)
+                if file and file.name.split("/")[-1].startswith("sample-"):
+                    file.delete(save=False)
+                    count += 1
+        return count
 
     # ------------------------------------------------------------------- seed
     def seed(self):
@@ -185,10 +207,14 @@ class Command(BaseCommand):
                 ach.image.save("sample-achievement.png", png("AWARD", 3), save=True)
 
         for i, name in enumerate(["ISTQB Certified Tester", "Python for Automation", "Agile & Scrum Fundamentals"]):
-            Certification.objects.create(
+            cert = Certification.objects.create(
                 name=f"{MARK}{name}", issuing_organization="Example Authority", issue_date=today - timedelta(days=300 * (i + 1)),
                 credential_id=f"SAMPLE-{1000 + i}", credential_url="https://example.com/verify", display_order=i,
             )
+            if i == 2:  # one PDF certificate, the others as images
+                cert.certificate.save("sample-cert.pdf", ContentFile(SAMPLE_PDF), save=True)
+            else:
+                cert.certificate.save(f"sample-cert-{i}.png", png("CERTIFICATE", i, (1400, 1000)), save=True)
 
         for i, name in enumerate(["Advanced Test Automation Workshop", "Software Testing Bootcamp"]):
             Training.objects.create(

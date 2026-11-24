@@ -1,50 +1,40 @@
-/* Responsive overrides (mobile-first base lives in main.css) ------------------ */
+/* Responsive rules. Sidebar shell from 1200px; top bar + off-canvas menu below. */
 
-/* Tablet and below */
-@media (max-width: 991.98px) {
-  .section { padding: 4rem 0; }
-  .navbar-collapse {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: .75rem; margin-top: .6rem; box-shadow: var(--shadow); max-height: calc(100vh - var(--nav-h) - 20px); overflow-y: auto;
-  }
-  .navbar-portfolio .nav-link.active::after { display: none; }
-  .navbar-portfolio .nav-link.active { background: var(--surface-2); }
-  .hero { min-height: auto; padding-bottom: 5rem; text-align: center; }
-  .hero .lead { margin-left: auto; margin-right: auto; }
-  .hero .hero-actions, .hero .social { justify-content: center; }
-  .hero .order-lg-last { margin-bottom: 1.5rem; }
-  .scroll-hint { display: none; }
+@media (max-width: 1199.98px) {
+  :root { --nav-h: 60px; }
+  body { background-image: none; background-color: var(--bg); }
+  .app-shell { display: block; width: auto; margin: 0; border: 0; border-radius: 0; box-shadow: none; max-width: none; }
+  .main-area { min-height: 100vh; }
+  .hero { padding-top: calc(var(--nav-h) + 2.5rem); }
+  .photo-frame { margin: 0 auto; max-width: 340px; }
 }
 
-/* Large phones */
+@media (max-width: 991.98px) {
+  .section { padding: 3.75rem 0; }
+  .hero .order-1 { margin-bottom: 1rem; }
+}
+
 @media (max-width: 767.98px) {
-  .section { padding: 3.25rem 0; }
-  .section-head { margin-bottom: 2rem; }
-  .page-header { padding-top: calc(var(--nav-h) + 1.75rem); }
-  .timeline { padding-left: 1.9rem; }
-  .timeline-dot { left: -1.9rem; }
+  .section { padding: 3.1rem 0; }
+  .section-head { margin-bottom: 1.75rem; }
+  .timeline { padding-left: 1.8rem; }
+  .timeline-dot { left: -1.8rem; }
   .card-p .card-body-p { padding: 1.15rem; }
   .toast-stack { align-items: stretch; }
+  .stat-strip { grid-template-columns: 1fr; }
+  .stat-strip > div + div { border-left: 0; border-top: 1px solid var(--border); }
 }
 
-/* Small phones */
 @media (max-width: 575.98px) {
-  :root { --nav-h: 64px; }
-  .hero h1 { font-size: 2.1rem; }
-  .btn { padding: .6rem 1.15rem; }
+  body { font-size: .88rem; }
+  .hero h1 { font-size: 2.5rem; }
   .hero-actions .btn { flex: 1 1 100%; }
   .skill-tabs .filter-btn { flex: 1 1 auto; }
-  .stat strong { font-size: 1.6rem; }
+  .photo-frame { max-width: 280px; }
 }
 
-/* Wide screens */
-@media (min-width: 1400px) {
-  .container { max-width: 1240px; }
-}
-
-/* Print: clean readable output */
 @media print {
-  .navbar-portfolio, .site-footer, .back-to-top, .toast-stack, .scroll-hint { display: none !important; }
-  .section { padding: 1.5rem 0; }
+  .sidebar, .topbar, .site-footer, .back-to-top, .toast-stack { display: none !important; }
+  .app-shell { display: block; border: 0; margin: 0; }
   body { background: #fff; color: #000; }
 }

@@ -1,31 +1,18 @@
-{% url 'core:home' as home_url %}
-{% with app=request.resolver_match.app_name %}
-<nav class="navbar navbar-expand-lg navbar-portfolio fixed-top" aria-label="Main navigation">
-  <div class="container">
-    <a class="navbar-brand" href="{{ home_url }}">
-      <span class="brand-mark"><i class="bi bi-code-slash"></i></span>
-      <span class="d-none d-sm-inline">{{ site_name }}</span>
-    </a>
-
-    <div class="d-flex align-items-center gap-2 order-lg-last">
-      <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle theme"><i class="bi bi-sun"></i></button>
-      <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="bi bi-list fs-4"></i>
-      </button>
-    </div>
-
-    <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav mx-lg-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" data-spy="about" href="{{ home_url }}#about">About</a></li>
-        <li class="nav-item"><a class="nav-link" data-spy="education" href="{{ home_url }}#education">Education</a></li>
-        <li class="nav-item"><a class="nav-link" data-spy="experience" href="{{ home_url }}#experience">Experience</a></li>
-        <li class="nav-item"><a class="nav-link" data-spy="skills" href="{{ home_url }}#skills">Skills</a></li>
-        <li class="nav-item"><a class="nav-link {% if app == 'projects' %}active{% endif %}" data-spy="projects" href="{{ home_url }}#projects">Projects</a></li>
-        <li class="nav-item"><a class="nav-link {% if app == 'blogs' %}active{% endif %}" href="{% url 'blogs:list' %}">Blog</a></li>
-        <li class="nav-item"><a class="nav-link {% if app == 'research' %}active{% endif %}" href="{% url 'research:list' %}">Research</a></li>
-        <li class="nav-item"><a class="nav-link {% if app == 'contact' %}active{% endif %}" data-spy="contact" href="{{ home_url }}#contact">Contact</a></li>
-      </ul>
-    </div>
+{# Mobile / tablet (< 1200px): fixed top bar + off-canvas menu. Desktop uses the sidebar in base.html. #}
+<header class="topbar d-xl-none">
+  <a class="side-brand" href="{% url 'core:home' %}">
+    <span class="brand-mark">{{ site_name|slice:":1"|upper }}</span>
+    <span><strong>{{ site_name }}</strong></span>
+  </a>
+  <div class="d-flex gap-2">
+    <button class="icon-btn theme-toggle" type="button" aria-label="Toggle theme"><i class="bi bi-sun"></i></button>
+    <button class="icon-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-label="Open menu"><i class="bi bi-list fs-5"></i></button>
   </div>
-</nav>
-{% endwith %}
+</header>
+
+<div class="offcanvas offcanvas-start sidebar-offcanvas d-xl-none" tabindex="-1" id="mobileNav" aria-label="Menu">
+  <div class="offcanvas-body">
+    <button type="button" class="btn-close ms-auto mb-2" data-bs-dismiss="offcanvas" aria-label="Close menu"></button>
+    {% include "components/sidebar_inner.html" %}
+  </div>
+</div>

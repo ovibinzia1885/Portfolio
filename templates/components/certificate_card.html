@@ -1,0 +1,35 @@
+{# Expects `cert`. Preview opens the shared #certPreview modal (components/certificate_modal.html). #}
+<article class="card-p hover-lift cert-card">
+  <div class="cert-media">
+    {% if cert.is_image %}
+      <img src="{{ cert.certificate.url }}" alt="{{ cert.name }} certificate" loading="lazy">
+    {% else %}
+      <div class="cert-placeholder"><i class="bi {% if cert.is_pdf %}bi-file-earmark-pdf{% else %}bi-patch-check{% endif %}"></i><span>{% if cert.is_pdf %}PDF certificate{% else %}Credential{% endif %}</span></div>
+    {% endif %}
+    <span class="tag-mono">{{ cert.issuing_organization|truncatechars:28 }}</span>
+  </div>
+  <div class="card-body-p">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <div>
+        <p class="mono-label">Certificate</p>
+        <h3>{{ cert.name }}</h3>
+      </div>
+      <span class="icon-tile"><i class="bi bi-award"></i></span>
+    </div>
+    <p class="meta mb-0">
+      <i class="bi bi-calendar3"></i>Issued {{ cert.issue_date|date:"M Y" }}{% if cert.expiry_date %} &middot; Expires {{ cert.expiry_date|date:"M Y" }}{% endif %}
+      {% if cert.credential_id %}<br><i class="bi bi-hash"></i>{{ cert.credential_id }}{% endif %}
+    </p>
+    <div class="card-foot">
+      {% if cert.certificate or cert.credential_url %}<span class="pill-status">Credential available</span>{% else %}<span class="pill-status">Listed</span>{% endif %}
+      <div class="d-flex gap-3">
+        {% if cert.credential_url %}<a class="link-arrow" href="{{ cert.credential_url }}" target="_blank" rel="noopener noreferrer">Verify <i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+        {% if cert.certificate %}
+          <button type="button" class="link-arrow" data-bs-toggle="modal" data-bs-target="#certPreview"
+                  data-cert-src="{{ cert.certificate.url }}" data-cert-type="{% if cert.is_pdf %}pdf{% else %}image{% endif %}"
+                  data-cert-title="{{ cert.name }}">Preview <i class="bi bi-arrow-right"></i></button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

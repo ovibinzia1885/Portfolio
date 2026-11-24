@@ -6,55 +6,55 @@
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-  /* Theme toggle (dark default, preference saved) */
-  const themeBtn = $("#themeToggle");
+  /* Theme toggle (dark default, preference saved). There is one button in the
+     sidebar, one in the mobile menu and one in the top bar. */
+  const themeBtns = $$(".theme-toggle");
   function applyTheme(theme) {
     root.setAttribute("data-bs-theme", theme);
     try { localStorage.setItem("theme", theme); } catch (e) { /* storage blocked */ }
-    if (themeBtn) {
-      themeBtn.setAttribute("aria-label", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
-      $("i", themeBtn).className = theme === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
-    }
+    themeBtns.forEach((btn) => {
+      btn.setAttribute("aria-label", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+      const icon = $("i", btn); if (icon) icon.className = theme === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
+    });
   }
-  if (themeBtn) {
-    applyTheme(root.getAttribute("data-bs-theme") || "dark");
-    themeBtn.addEventListener("click", () =>
-      applyTheme(root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark"));
+  applyTheme(root.getAttribute("data-bs-theme") || "dark");
+  themeBtns.forEach((btn) => btn.addEventListener("click", () =>
+    applyTheme(root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark")));
+
+  /* Mobile menu: close the off-canvas after choosing a link */
+  const offcanvasEl = $("#mobileNav");
+  if (offcanvasEl && window.bootstrap) {
+    $$(".snav-link", offcanvasEl).forEach((link) => link.addEventListener("click", () =>
+      bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).hide()));
   }
 
-  /* Navbar: solid background after scrolling / while mobile menu is open */
-  const nav = $(".navbar-portfolio");
-  const collapseEl = $("#mainNav");
-  function onScroll() {
-    if (nav) nav.classList.toggle("scrolled", window.scrollY > 24);
-    const top = $("#backToTop");
-    if (top) top.classList.toggle("show", window.scrollY > 600);
-  }
+  /* Back-to-top visibility */
+  const topBtn = $("#backToTop");
+  function onScroll() { if (topBtn) topBtn.classList.toggle("show", window.scrollY > 600); }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
-  if (collapseEl && nav) {
-    collapseEl.addEventListener("show.bs.collapse", () => nav.classList.add("menu-open"));
-    collapseEl.addEventListener("hidden.bs.collapse", () => nav.classList.remove("menu-open"));
-    $$(".nav-link", collapseEl).forEach((link) =>
-      link.addEventListener("click", () => {
-        if (collapseEl.classList.contains("show")) bootstrap.Collapse.getOrCreateInstance(collapseEl).hide();
-      }));
-  }
+  if (topBtn) topBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
-  /* Scroll spy for in-page links (home only) */
-  const spyLinks = $$('.navbar-portfolio .nav-link[data-spy]');
+  /* Scroll spy for in-page links (only sections that exist on this page) */
+  const spyLinks = $$(".snav-link[data-spy]");
   if (spyLinks.length && "IntersectionObserver" in window) {
-    const map = new Map();
-    spyLinks.forEach((l) => { const s = document.getElementById(l.dataset.spy); if (s) map.set(s, l); });
-    const spy = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
+    const sections = new Map();
+    spyLinks.forEach((link) => {
+      const section = document.getElementById(link.dataset.spy);
+      if (!section) return;
+      if (!sections.has(section)) sections.set(section, []);
+      sections.get(section).push(link);
+    });
+    if (sections.size) {
+      const spy = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
           spyLinks.forEach((l) => l.classList.remove("active"));
-          const l = map.get(e.target); if (l) l.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    map.forEach((_, section) => spy.observe(section));
+          (sections.get(entry.target) || []).forEach((l) => l.classList.add("active"));
+        });
+      }, { rootMargin: "-40% 0px -55% 0px" });
+      sections.forEach((_, section) => spy.observe(section));
+    }
   }
 
   /* Reveal on scroll */
@@ -62,7 +62,7 @@
   if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     const io = new IntersectionObserver((entries, obs) => {
       entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); } });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.1 });
     revealEls.forEach((el) => io.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add("visible"));
@@ -95,6 +95,32 @@
     }));
   }
 
+  /* Certificate preview modal (image or PDF) */
+  const certModal = $("#certPreview");
+  if (certModal) {
+    const body = $("[data-cert-body]", certModal);
+    certModal.addEventListener("show.bs.modal", (event) => {
+      const trigger = event.relatedTarget;
+      if (!trigger) return;
+      const src = trigger.dataset.certSrc;
+      const title = trigger.dataset.certTitle || "Certificate";
+      $("#certPreviewTitle", certModal).textContent = title;
+      $("[data-cert-open]", certModal).href = src;
+      $("[data-cert-download]", certModal).href = src;
+      body.replaceChildren();
+      if (trigger.dataset.certType === "pdf") {
+        const frame = document.createElement("iframe");
+        frame.src = src; frame.title = title;
+        body.appendChild(frame);
+      } else {
+        const img = document.createElement("img");
+        img.src = src; img.alt = title;
+        body.appendChild(img);
+      }
+    });
+    certModal.addEventListener("hidden.bs.modal", () => body.replaceChildren());
+  }
+
   /* Messages: auto-dismiss after 7s, closable */
   $$(".toast-p").forEach((toast) => {
     const close = () => { toast.classList.add("hide"); setTimeout(() => toast.remove(), 300); };
@@ -117,10 +143,6 @@
       if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...'; }
     });
   }
-
-  /* Back to top */
-  const topBtn = $("#backToTop");
-  if (topBtn) topBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
   /* Footer year */
   const year = $("#year"); if (year) year.textContent = new Date().getFullYear();

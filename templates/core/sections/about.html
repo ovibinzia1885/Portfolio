@@ -7,10 +7,10 @@
           {% if profile and profile.bio %}{{ profile.bio|linebreaks }}
           {% else %}{% include "components/empty_state.html" with icon="bi-person-lines-fill" text="Write your bio in the admin panel (Core > Profile > Bio)." %}{% endif %}
         </div>
-        <div class="row g-3 mt-2">
-          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.projects }}</strong><span class="meta">Projects</span></div></div>
-          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.certifications }}</strong><span class="meta">Certifications</span></div></div>
-          <div class="col-4"><div class="card-p stat"><strong class="text-gradient">{{ stats.papers }}</strong><span class="meta">Publications</span></div></div>
+        <div class="stat-strip mt-4">
+          <div><p class="mono-label">Projects</p><strong class="big">{{ stats.projects }}</strong></div>
+          <div><p class="mono-label">Certifications</p><strong class="big">{{ stats.certifications }}</strong></div>
+          <div><p class="mono-label">Publications</p><strong class="big">{{ stats.papers }}</strong></div>
         </div>
       </div>
       <div class="col-lg-5 reveal" style="--d:.1s">

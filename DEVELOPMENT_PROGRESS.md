@@ -67,6 +67,20 @@
 - [x] "Preview CV" buttons in Hero, About and Footer (only when the CV is a PDF; non-PDF files fall back to download)
 - [x] 30 tests passing
 
+### Change request 6 - Redesign (2026-11-24)
+Design direction inspired by a reference portfolio (style only; no text, images or branding copied):
+- [x] New "terminal shell" theme: near-black + lime accent, dotted page background, JetBrains Mono body,
+      Space Grotesk headings, `// label` eyebrows; light theme kept
+- [x] Layout: framed app-shell with a left sidebar (numbered nav, availability, socials, theme toggle) on
+      screens >= 1200px; fixed top bar + off-canvas menu below that
+- [x] Hero: large headline, mono intro with caret, skill chips, framed grayscale photo
+- [x] New `/certifications/` page: provider/latest/proof strip, certificate cards with image, issuer tag,
+      "Credential available" status, Verify + Preview (modal for image or PDF)
+- [x] `seed_demo`: real viewer-compatible sample PDFs; `--clear` now also deletes sample files
+- [x] 36 tests passing; no horizontal overflow at 360-1920px on 10 pages
+- [ ] PDF certificate preview in the modal could not be confirmed visually (headless browser limitation) -
+      check once in a normal browser
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`

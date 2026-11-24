@@ -20,5 +20,15 @@ class Certification(OrderedModel):
     class Meta(OrderedModel.Meta):
         ordering = ["display_order", "-issue_date"]
 
+    @property
+    def is_image(self):
+        return bool(self.certificate) and self.certificate.name.lower().endswith(
+            (".jpg", ".jpeg", ".png", ".webp")
+        )
+
+    @property
+    def is_pdf(self):
+        return bool(self.certificate) and self.certificate.name.lower().endswith(".pdf")
+
     def __str__(self):
         return f"{self.name} - {self.issuing_organization}"
