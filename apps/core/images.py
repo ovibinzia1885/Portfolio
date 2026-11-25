@@ -44,10 +44,17 @@ def optimize_image_file(field_file, max_px=MAX_IMAGE_PX):
     return True
 
 
+IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp")
+
+
 def optimize_images(sender, instance, **kwargs):
     for field in instance._meta.get_fields():
         if isinstance(field, models.ImageField):
             optimize_image_file(getattr(instance, field.attname))
+        elif isinstance(field, models.FileField):  # e.g. a certificate that may be an image or a PDF
+            file = getattr(instance, field.attname)
+            if file and file.name.lower().endswith(IMAGE_SUFFIXES):
+                optimize_image_file(file)
 
 
 def connect():

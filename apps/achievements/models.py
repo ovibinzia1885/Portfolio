@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.core.models import OrderedModel
-from apps.core.validators import image_validators
+from apps.core.validators import document_validators, image_validators
 
 
 class Achievement(OrderedModel):
@@ -15,14 +15,18 @@ class Achievement(OrderedModel):
         "Photo", upload_to="achievements/", blank=True, validators=image_validators,
         help_text="Card photo, e.g. receiving the award.",
     )
-    certificate = models.ImageField(
-        upload_to="achievements/certificates/", blank=True, validators=image_validators,
-        help_text="Optional certificate image (opens in the Preview popup).",
+    certificate = models.FileField(
+        upload_to="achievements/certificates/", blank=True, validators=document_validators,
+        help_text="Optional certificate, image or PDF (opens in the Preview popup).",
     )
     url = models.URLField(blank=True)
 
     class Meta(OrderedModel.Meta):
         ordering = ["display_order", "-date"]
+
+    @property
+    def certificate_is_pdf(self):
+        return bool(self.certificate) and self.certificate.name.lower().endswith(".pdf")
 
     @property
     def date_label(self):

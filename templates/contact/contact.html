@@ -10,8 +10,8 @@
       <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
       <li class="breadcrumb-item active" aria-current="page">Contact</li>
     </ol></nav>
-    <h1 class="section-title">Get in touch</h1>
-    <p class="section-sub">Questions, opportunities or just a hello.</p>
+    <h1 class="section-title">{{ sections.contact.page_title }}</h1>
+    {% if sections.contact.page_subtitle %}<p class="section-sub">{{ sections.contact.page_subtitle }}</p>{% endif %}
   </div>
 </header>
 <div class="page-body">

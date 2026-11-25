@@ -31,7 +31,8 @@ def highlight_author(authors, profile):
     text = escape(authors or "")
     name = escape(getattr(profile, "full_name", "") or "").strip()
     if name:
-        text = re.sub(re.escape(name), lambda m: f"<strong>{m.group(0)}</strong>", text, flags=re.IGNORECASE)
+        # whole words only: a short name must not be bolded inside a longer one ("Ali" in "Alice")
+        text = re.sub(rf"(?<!\w){re.escape(name)}(?!\w)", lambda m: f"<strong>{m.group(0)}</strong>", text, flags=re.IGNORECASE)
     return mark_safe(text)  # safe: input escaped above, only <strong> added
 
 

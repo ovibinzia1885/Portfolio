@@ -1,27 +1,33 @@
+{# Hero text comes from Admin > Profile. The "Your …" placeholders are shown only to the logged-in owner. #}
+{% with staff=user.is_staff available=profile.is_available %}
 <section id="hero" class="hero" aria-label="hero">
   <div class="container">
     <div class="row align-items-center g-5">
       <div class="col-lg-7 order-2 order-lg-1">
-        <p class="prompt reveal mb-0"><b>$</b> hello world</p>
-        <h1 class="reveal" style="--d:.06s">{% if profile and profile.headline %}{{ profile.headline }}{% else %}Your Headline Here{% endif %}<span class="dot">.</span></h1>
+        {% if profile.hero_greeting %}<p class="prompt reveal mb-0"><b>$</b> {{ profile.hero_greeting }}</p>{% endif %}
+        <h1 class="reveal" style="--d:.06s">{% if profile and profile.headline %}{{ profile.headline }}{% elif staff %}Your Headline Here{% else %}{{ site_name }}{% endif %}<span class="dot">.</span></h1>
+        {% if profile or staff %}
         <p class="lead reveal" style="--d:.12s">
-          I'm <strong>{% if profile %}{{ profile.full_name }}{% else %}Your Name{% endif %}</strong>.
-          {% if profile and profile.short_intro %}{{ profile.short_intro }}{% else %}Add your name, headline and short intro from the admin panel (Core &gt; Profile).{% endif %}<span class="caret" aria-hidden="true"></span>
+          {% if profile %}I'm <strong>{{ profile.full_name }}</strong>.{% else %}I'm <strong>Your Name</strong>.{% endif %}
+          {% if profile and profile.short_intro %}{{ profile.short_intro }}{% elif staff %}Add your name, headline and short intro from the admin panel (Profile &amp; Website &gt; Profile).{% endif %}<span class="caret" aria-hidden="true"></span>
         </p>
+        {% endif %}
         {% if hero_skills %}
         <div class="reveal mb-4" style="--d:.18s">{% for skill in hero_skills %}<span class="chip">{{ skill.name }}</span>{% endfor %}</div>
         {% endif %}
         <div class="d-flex flex-wrap gap-2 hero-actions reveal" style="--d:.24s">
-          <a href="#projects" class="btn btn-grad btn-lg"><i class="bi bi-layers me-2"></i>View selected work <i class="bi bi-arrow-down ms-1"></i></a>
-          {% if profile and profile.resume %}
+          {% if has_featured_projects %}<a href="#projects" class="btn btn-grad btn-lg"><i class="bi bi-layers me-2"></i>{{ profile.hero_button_label|default:"View selected work" }} <i class="bi bi-arrow-down ms-1"></i></a>{% endif %}
+          {% if profile and profile.resume_available %}
             {% if profile.resume_is_pdf %}<a href="{% url 'core:cv_preview' %}" class="btn btn-ghost btn-lg"><i class="bi bi-eye me-2"></i>Preview CV</a>{% endif %}
             <a href="{% url 'core:download_cv' %}" class="btn btn-ghost btn-lg"><i class="bi bi-download me-2"></i>Download CV</a>
           {% endif %}
         </div>
+        {% if available and profile.availability_text or profile.location %}
         <p class="hero-status mt-4 mb-0 reveal" style="--d:.3s">
-          <span><span class="status-dot d-inline-block me-2"></span>Available for opportunities</span>
-          {% if profile and profile.location %}<span>{{ profile.location }}</span>{% endif %}
+          {% if available and profile.availability_text %}<span><span class="status-dot d-inline-block me-2"></span>{{ profile.availability_text }}</span>{% endif %}
+          {% if profile.location %}<span>{{ profile.location }}</span>{% endif %}
         </p>
+        {% endif %}
       </div>
       <div class="col-lg-5 order-1 order-lg-2 reveal" style="--d:.1s">
         <div class="photo-frame">
@@ -30,9 +36,12 @@
           {% else %}
             <div class="photo" role="img" aria-label="Profile photo placeholder"><i class="bi bi-person"></i></div>
           {% endif %}
-          <div class="photo-caption"><span>{% if profile and profile.location %}{{ profile.location|truncatechars:24 }}{% else %}Location{% endif %}</span><span class="on">Available</span></div>
+          {% if profile.location or available and profile.availability_text %}
+          <div class="photo-caption"><span>{{ profile.location|truncatechars:24 }}</span>{% if available and profile.availability_text %}<span class="on">{{ profile.availability_text|truncatechars:20 }}</span>{% endif %}</div>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
 </section>
+{% endwith %}

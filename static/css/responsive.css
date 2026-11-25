@@ -33,6 +33,8 @@
   body { font-size: .88rem; }
   .hero h1 { font-size: 2.5rem; }
   .hero-actions .btn { flex: 1 1 100%; }
+  /* availability is already in the hero status line; a long text would wrap under the photo */
+  .photo-caption .on { display: none; }
   .skill-tabs .filter-btn { flex: 1 1 auto; }
   .photo-frame { max-width: 280px; }
 }

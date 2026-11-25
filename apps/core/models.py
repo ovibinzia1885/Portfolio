@@ -50,11 +50,64 @@ class Profile(TimeStampedModel):
     )
     facebook_url = models.URLField(blank=True)
     twitter_url = models.URLField(blank=True)
+    is_available = models.BooleanField(
+        "Show availability", default=True,
+        help_text="Show the green availability badge in the sidebar and hero.",
+    )
+    availability_text = models.CharField(
+        max_length=60, blank=True, default="Available for work",
+        help_text='Text of the availability badge, e.g. "Available for work" or "Open to freelance".',
+    )
+    hero_greeting = models.CharField(
+        max_length=60, blank=True, default="hello world",
+        help_text='Small terminal-style line above the headline ("$ hello world").',
+    )
+    hero_button_label = models.CharField(
+        max_length=40, blank=True, default="View selected work",
+        help_text="Label of the main hero button (it scrolls to Projects).",
+    )
+
+    @property
+    def resume_available(self):
+        """True when a CV is set AND its file really exists (a missing file would break the download)."""
+        if not self.resume:
+            return False
+        try:
+            return self.resume.storage.exists(self.resume.name)
+        except (OSError, ValueError):
+            return False
 
     @property
     def resume_is_pdf(self):
-        """True when a PDF CV is uploaded (only PDFs can be previewed in the browser)."""
-        return bool(self.resume) and self.resume.name.lower().endswith(".pdf")
+        """True when a PDF CV is available (only PDFs can be previewed in the browser)."""
+        return self.resume_available and self.resume.name.lower().endswith(".pdf")
 
     def __str__(self):
         return self.full_name
+
+
+class SiteSection(OrderedModel):
+    """Wording, visibility and order of the home-page sections and the sidebar menu."""
+
+    key = models.CharField(max_length=30, unique=True, editable=False)
+    label = models.CharField("Menu label", max_length=40, blank=True)
+    icon = models.CharField(
+        max_length=40, blank=True, help_text='Bootstrap icon name, e.g. "bi-award" (see icons.getbootstrap.com).'
+    )
+    eyebrow = models.CharField("Small label", max_length=60, blank=True, help_text="Small text above the title.")
+    title = models.CharField(max_length=120, blank=True)
+    subtitle = models.CharField(max_length=200, blank=True)
+    page_title = models.CharField(
+        max_length=120, blank=True, help_text="Heading of the section's own page (Projects, Blog, Research, …)."
+    )
+    page_subtitle = models.CharField(max_length=200, blank=True)
+    is_visible = models.BooleanField(
+        "Show on website", default=True,
+        help_text="Off = hidden from the home page and the menu. Empty sections are hidden from visitors anyway.",
+    )
+
+    class Meta(OrderedModel.Meta):
+        verbose_name = "site section"
+
+    def __str__(self):
+        return self.label or self.key.title()

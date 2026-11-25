@@ -1,7 +1,7 @@
 {% load portfolio_extras %}
-<section id="experience" class="section section-alt" aria-label="experience">
+<section id="experience" class="section{% if alt %} section-alt{% endif %}" aria-label="experience">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Experience" title="Professional journey" subtitle="Roles, responsibilities and impact." %}
+    {% include "components/section_title.html" with eyebrow=sections.experience.eyebrow title=sections.experience.title subtitle=sections.experience.subtitle %}
     {% if experiences %}
     <div class="timeline">
       {% for exp in experiences %}

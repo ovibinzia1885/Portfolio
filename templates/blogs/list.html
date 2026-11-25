@@ -13,8 +13,8 @@
       {% if active_category %}<li class="breadcrumb-item active">{{ active_category.name }}</li>{% endif %}
       {% if active_tag %}<li class="breadcrumb-item active">#{{ active_tag.name }}</li>{% endif %}
     </ol></nav>
-    <h1 class="section-title">{% if active_category %}{{ active_category.name }}{% elif active_tag %}#{{ active_tag.name }}{% elif query %}Search results{% else %}Blog{% endif %}</h1>
-    <p class="section-sub">{% if query %}{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }} for &ldquo;{{ query }}&rdquo;{% else %}Articles, tutorials and notes.{% endif %}</p>
+    <h1 class="section-title">{% if active_category %}{{ active_category.name }}{% elif active_tag %}#{{ active_tag.name }}{% elif query %}Search results{% else %}{{ sections.blogs.page_title }}{% endif %}</h1>
+    <p class="section-sub">{% if query %}{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }} for &ldquo;{{ query }}&rdquo;{% else %}{{ sections.blogs.page_subtitle }}{% endif %}</p>
   </div>
 </header>
 

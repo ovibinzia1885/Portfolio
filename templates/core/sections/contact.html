@@ -1,6 +1,6 @@
-<section id="contact" class="section section-alt" aria-label="contact">
+<section id="contact" class="section{% if alt %} section-alt{% endif %}" aria-label="contact">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Contact" title="Let's work together" subtitle="Send a message and I will get back to you." %}
+    {% include "components/section_title.html" with eyebrow=sections.contact.eyebrow title=sections.contact.title subtitle=sections.contact.subtitle %}
     <div class="row g-4">
       <div class="col-lg-5 reveal">
         <div class="card-p"><div class="card-body-p">

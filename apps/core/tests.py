@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from datetime import date, timedelta
 
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.test import TestCase, override_settings
@@ -41,11 +42,23 @@ class SiteTests(TestCase):
 
     # ---- pages -----------------------------------------------------------
     def test_home_renders_all_sections(self):
+        # the owner sees every section (also empty ones, to fill them in)
+        self.client.force_login(get_user_model().objects.create_user("owner", password="x-Owner-2026", is_staff=True))
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
         for section_id in ("hero", "about", "education", "experience", "skills", "projects",
                            "achievements", "certifications", "training", "blogs", "research", "contact"):
             self.assertContains(response, f'id="{section_id}"')
+
+    def test_visitors_see_only_sections_with_content(self):
+        from apps.training.models import Training
+
+        Training.objects.all().delete()
+        html = self.client.get(reverse("core:home")).content.decode()
+        self.assertNotIn('id="training"', html)
+        self.assertIn('id="education"', html)
+        self.assertNotIn("admin panel", html)  # setup hints are for the owner only
+        self.assertNotIn('href="/#training"', html)  # and the menu skips the empty section
 
     def test_home_empty_database_still_renders(self):
         # Delete rows only (rolled back after the test). Not `seed_demo --clear`, which
@@ -59,8 +72,14 @@ class SiteTests(TestCase):
                 model.objects.all().delete()
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No featured projects")
+        self.assertNotContains(response, "No education added yet")  # visitors: empty sections hidden
+        self.assertNotContains(response, "Your Name")
+        self.assertContains(response, 'id="contact"')
+        self.client.force_login(get_user_model().objects.create_user("owner", password="x-Owner-2026", is_staff=True))
+        response = self.client.get(reverse("core:home"))
+        self.assertContains(response, "No featured projects")  # owner: hints on how to fill them
         self.assertContains(response, "No education added yet")
+        self.assertContains(response, "Your Headline Here")
 
     def test_education_dynamic_fields(self):
         response = self.client.get(reverse("core:home"))
@@ -117,6 +136,9 @@ class SiteTests(TestCase):
         for url in (reverse("core:home"), reverse("projects:list")):
             response = self.client.get(url)
             groups = {g["key"]: g for g in response.context["project_groups"]}
+            if url == reverse("core:home"):  # home skips a group without featured projects
+                self.assertTrue(set(groups) <= {"client", "personal"})
+                continue
             self.assertEqual(set(groups), {"client", "personal"})
             self.assertTrue(all(p.project_type == "client" for p in groups["client"]["projects"]))
             self.assertTrue(all(p.project_type == "personal" for p in groups["personal"]["projects"]))

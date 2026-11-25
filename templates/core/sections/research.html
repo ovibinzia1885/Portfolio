@@ -1,7 +1,7 @@
 {% load portfolio_extras %}
-<section id="research" class="section" aria-label="research">
+<section id="research" class="section{% if alt %} section-alt{% endif %}" aria-label="research">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Research" title="Publications & papers" subtitle="Academic and applied research." %}
+    {% include "components/section_title.html" with eyebrow=sections.research.eyebrow title=sections.research.title subtitle=sections.research.subtitle %}
     {% if papers %}
     <div class="row g-4">
       {% for paper in papers %}

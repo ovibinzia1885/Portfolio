@@ -1,6 +1,6 @@
-<section id="certifications" class="section" aria-label="certifications">
+<section id="certifications" class="section{% if alt %} section-alt{% endif %}" aria-label="certifications">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Credentials & courses" title="Certifications" subtitle="Verified credentials. Click preview to view the certificate." %}
+    {% include "components/section_title.html" with eyebrow=sections.certifications.eyebrow title=sections.certifications.title subtitle=sections.certifications.subtitle %}
     {% if certifications %}
     <div class="row g-4">
       {% for cert in certifications %}

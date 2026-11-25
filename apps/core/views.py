@@ -1,3 +1,6 @@
+import re
+from pathlib import PurePosixPath
+
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -16,6 +19,7 @@ from apps.skills.models import MainCategory, Skill
 from apps.training.models import Training
 
 from .models import Profile
+from .sections import visible_sections
 
 SKILL_ICONS = {
     MainCategory.TECHNICAL: "bi-cpu",
@@ -38,7 +42,7 @@ def group_skills():
             groups.append({
                 "key": value,
                 "label": label,
-                "icon": SKILL_ICONS[value],
+                "icon": SKILL_ICONS.get(value, "bi-tools"),
                 "subgroups": list(subgroups.values()),
             })
     return groups
@@ -52,13 +56,16 @@ class HomeView(TemplateView):
         featured = list(
             Project.objects.filter(is_featured=True).prefetch_related("images")[:6]
         )
+        user = self.request.user
         context.update(
+            home_sections=visible_sections(self.request, is_staff=user.is_authenticated and user.is_staff),
             educations=Education.objects.all(),
             experiences=Experience.objects.all(),
             skill_groups=group_skills(),
-            project_groups=group_projects(featured),
+            # on the home page, a group with no featured project is left out
+            project_groups=[g for g in group_projects(featured) if g["projects"]],
             has_featured_projects=bool(featured),
-            achievements=Achievement.objects.all()[:6],
+            achievements=Achievement.objects.all(),
             certifications=Certification.objects.all()[:4],
             hero_skills=Skill.objects.filter(main_category=MainCategory.TECHNICAL)[:5],
             trainings=Training.objects.all(),
@@ -89,19 +96,30 @@ def robots_txt(request):
 
 def _profile_with_cv():
     profile = Profile.objects.first()
-    if not profile or not profile.resume:
+    if not profile or not profile.resume_available:  # no CV, or the file is missing on disk
         raise Http404("No CV uploaded.")
     return profile
 
 
+def cv_filename(profile):
+    """Clean download name from the owner's name, e.g. "Nazmul_Hoque_Ovy_CV.pdf"
+    (the stored name can carry a random suffix added by Django on re-upload)."""
+    ext = PurePosixPath(profile.resume.name).suffix.lower() or ".pdf"
+    name = re.sub(r"[^A-Za-z0-9]+", "_", profile.full_name).strip("_") or "CV"
+    return f"{name}_CV{ext}"
+
+
+def _serve_cv(profile, **kwargs):
+    try:
+        handle = profile.resume.open("rb")
+    except OSError:  # removed between the check and the read
+        raise Http404("CV file not found.")
+    return FileResponse(handle, filename=cv_filename(profile), **kwargs)
+
+
 def download_cv(request):
     """Serve the uploaded CV as an attachment."""
-    profile = _profile_with_cv()
-    return FileResponse(
-        profile.resume.open("rb"),
-        as_attachment=True,
-        filename=profile.resume.name.split("/")[-1],
-    )
+    return _serve_cv(_profile_with_cv(), as_attachment=True)
 
 
 def cv_preview(request):
@@ -109,7 +127,7 @@ def cv_preview(request):
     profile = _profile_with_cv()
     if not profile.resume_is_pdf:  # non-PDF files cannot be previewed
         return redirect("core:download_cv")
-    return render(request, "core/cv.html", {"cv_name": profile.resume.name.split("/")[-1]})
+    return render(request, "core/cv.html", {"cv_name": cv_filename(profile)})
 
 
 def cv_inline(request):
@@ -117,9 +135,4 @@ def cv_inline(request):
     profile = _profile_with_cv()
     if not profile.resume_is_pdf:
         raise Http404("CV is not a PDF.")
-    return FileResponse(
-        profile.resume.open("rb"),
-        as_attachment=False,
-        content_type="application/pdf",
-        filename=profile.resume.name.split("/")[-1],
-    )
+    return _serve_cv(profile, as_attachment=False, content_type="application/pdf")

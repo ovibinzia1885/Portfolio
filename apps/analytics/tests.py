@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.core.models import Profile
 
-from .models import DailyVisitor, PageViewStat
+from .models import CvDownloadStat, DailyVisitor, PageViewStat
 from .stats import dashboard_stats
 
 CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0 Safari/537.36"
@@ -83,6 +83,40 @@ class VisitorCountingTests(TestCase):
         cache.clear()
         self.assertNotContains(self.client.get("/"), 'class="visitor-count"')
 
+    def test_footer_total_views_updates_on_every_view(self):
+        Profile.objects.create(full_name="Ovy")
+        self.visit("/")
+        self.visit("/projects/")
+        response = self.visit("/")  # counted after rendering, so this page shows the 2 before it
+        self.assertContains(response, "<strong>1</strong> visitor")
+        self.assertContains(response, "<strong>2</strong> views")
+        self.assertContains(self.visit("/"), "<strong>3</strong> views")
+
+    def test_cv_downloads_are_counted_but_not_as_page_views(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        with self.settings(MEDIA_ROOT=self._tmp_media()):
+            Profile.objects.create(full_name="Ovy", resume=SimpleUploadedFile("cv.pdf", b"%PDF-1.4 test", "application/pdf"))
+            url = reverse("core:download_cv")
+            self.assertEqual(self.visit(url).status_code, 200)
+            self.visit(url, ip="198.51.100.20")
+            self.visit(url, agent="Googlebot/2.1")  # bot: not counted
+            staff = get_user_model().objects.create_user("owner", password="Owner-Pass-2026!", is_staff=True)
+            self.client.force_login(staff)
+            self.visit(url)  # owner: not counted
+        self.assertEqual(CvDownloadStat.objects.get().downloads, 2)
+        self.assertEqual(dashboard_stats()["cv_downloads"], 2)
+        self.assertEqual(PageViewStat.objects.count(), 0)
+        self.assertEqual(DailyVisitor.objects.count(), 0)
+
+    def _tmp_media(self):
+        import shutil
+        import tempfile
+
+        folder = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, folder, ignore_errors=True)
+        return folder
+
     def test_counting_errors_never_break_the_page(self):
         from unittest import mock
 
@@ -104,6 +138,8 @@ class VisitorStatsTests(TestCase):
         stats = dashboard_stats()
         self.assertEqual((stats["today"], stats["last_7"], stats["last_30"], stats["total"]), (3, 5, 6, 11))
         self.assertEqual(stats["page_views_30"], 10)
+        PageViewStat.objects.create(date=today - timedelta(days=90), path="/", views=5)
+        self.assertEqual(dashboard_stats()["page_views_total"], 15)
         self.assertEqual(len(stats["chart"]), 14)
         self.assertEqual(stats["chart"][-1]["visitors"], 3)
         self.assertEqual(stats["chart"][-1]["pct"], 100)
@@ -117,6 +153,8 @@ class VisitorStatsTests(TestCase):
         html = self.client.get(reverse("admin:index")).content.decode()
         self.assertIn("op-visits", html)
         self.assertIn("Last 7 days", html)
+        self.assertIn("Total views", html)
+        self.assertIn("CV downloads", html)
         self.assertEqual(self.client.get(reverse("admin:analytics_dailyvisitor_changelist")).status_code, 200)
         self.assertEqual(self.client.get(reverse("admin:analytics_dailyvisitor_add")).status_code, 403)
         self.assertEqual(DailyVisitor.objects.count(), 1)  # admin pages are never counted

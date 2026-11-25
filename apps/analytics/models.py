@@ -42,3 +42,18 @@ class PageViewStat(models.Model):
 
     def __str__(self):
         return f"{self.date} {self.path} ({self.views})"
+
+
+class CvDownloadStat(models.Model):
+    """CV downloads per day (same rules as page views: no bots, no site owner)."""
+
+    date = models.DateField(unique=True)
+    downloads = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-date"]
+        verbose_name = "CV download (daily)"
+        verbose_name_plural = "CV downloads (daily)"
+
+    def __str__(self):
+        return f"{self.date} ({self.downloads})"

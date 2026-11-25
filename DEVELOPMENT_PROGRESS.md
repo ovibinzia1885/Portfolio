@@ -165,11 +165,31 @@ Full report: [docs/QA_REPORT_FINAL.md](docs/QA_REPORT_FINAL.md). Verdict: ready 
       "Open in new tab" (iOS shows only page 1 of a PDF inside a page)
 - [ ] Not verifiable here: real iOS Safari (WebKit). Checked in Chromium at 8 widths; check once on an iPhone
 
+### Change request 16 - Total views and CV download count (2026-11-25)
+- [x] Footer and admin dashboard show all-time page views next to visitors
+- [x] CV downloads counted per day (`CvDownloadStat`, same rules: no bots, no owner); dashboard card
+      "CV downloads" + read-only admin list
+
+### Final QA 2 - code review, dynamic content, bug report (2026-11-25)
+Full report (16 bugs, steps, screenshots): Claude Docs "Ovy Portfolio — Final QA & Bug Report".
+- [x] New `SiteSection` (Admin > Profile & Website > Site sections): wording, menu label/icon, order and
+      visibility of the 11 home sections and the list-page headings; menu + footer built from it
+- [x] Profile: availability switch + text, hero greeting, hero button label (no fixed texts left in the hero)
+- [x] Visitors see only sections with content; setup hints and placeholders only for the logged-in owner
+- [x] Missing media files no longer cause 500s (admin save, CV/PDF download, favicon); single Profile only
+- [x] Skills follow their subcategory; unknown skill category gets a default icon; all awards shown;
+      empty project group hidden on home; DOI prefix stripped; scheduled posts not counted;
+      clean CV download name; whole-word author highlight; award certificate can be a PDF
+- [x] Re-check: sections/menu no longer cached per process (stale menu with several workers); read in one
+      query per request with EXISTS sub-queries
+- [x] 165 tests passing in normal, reversed and shuffled order (22 new regression tests);
+      242 admin pages, 26 public pages, 8 widths: 0 errors
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`
 (your own records are never touched). Placeholder images are generated gradients.
-Hero/About fallback texts (shown only when Profile is empty) also tell you what to fill in.
+Hero/About fallback texts (shown only to the logged-in owner when Profile is empty) tell you what to fill in.
 
 ## Open items
 - [x] Git installed; repo pushed to https://github.com/ovibinzia1885/Portfolio

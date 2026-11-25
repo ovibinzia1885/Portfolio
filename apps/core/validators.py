@@ -17,10 +17,18 @@ class MaxFileSizeValidator:
         self.max_mb = max_mb
 
     def __call__(self, file):
+        # Only new uploads are checked. A file already saved earlier is not re-read on every save,
+        # so a record can still be edited if its file went missing on disk or the limit was lowered.
+        if getattr(file, "_committed", False):
+            return
         limit_mb = self.max_mb or getattr(settings, "MAX_UPLOAD_MB", 5)
-        if file.size > limit_mb * 1024 * 1024:
+        try:
+            size = file.size
+        except OSError:
+            raise ValidationError("The uploaded file could not be read.", code="file_unreadable")
+        if size > limit_mb * 1024 * 1024:
             raise ValidationError(
-                f"File is too large ({file.size / 1024 / 1024:.1f} MB). Maximum size is {limit_mb} MB.",
+                f"File is too large ({size / 1024 / 1024:.1f} MB). Maximum size is {limit_mb} MB.",
                 code="file_too_large",
             )
 

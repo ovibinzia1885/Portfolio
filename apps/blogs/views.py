@@ -1,10 +1,14 @@
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
 from .models import BlogCategory, BlogPost, BlogTag
 
-PUBLISHED = Q(posts__status=BlogPost.Status.PUBLISHED)
+
+def published_filter():
+    """Posts that are live now (scheduled posts with a future date are not counted yet)."""
+    return Q(posts__status=BlogPost.Status.PUBLISHED, posts__published_at__lte=timezone.now())
 
 
 class BlogListView(ListView):
@@ -39,15 +43,16 @@ class BlogListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        live = published_filter()
         context.update(
             query=self.query,
             active_category=self.category,
             active_tag=self.tag,
             categories=BlogCategory.objects.annotate(
-                post_count=Count("posts", filter=PUBLISHED)
+                post_count=Count("posts", filter=live)
             ).filter(post_count__gt=0),
             tags=BlogTag.objects.annotate(
-                post_count=Count("posts", filter=PUBLISHED)
+                post_count=Count("posts", filter=live)
             ).filter(post_count__gt=0),
         )
         return context

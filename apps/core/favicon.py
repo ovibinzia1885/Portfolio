@@ -44,7 +44,10 @@ def favicon(request, size=32):
     key = f"favicon:{profile.photo.name}:{int(profile.updated_at.timestamp())}:{size}"
     data = cache.get(key)
     if data is None:
-        data = make_icon(profile.photo, size)
+        try:
+            data = make_icon(profile.photo, size)
+        except (OSError, ValueError):  # photo missing on disk or not a readable image
+            raise Http404("Profile photo not readable.")
         cache.set(key, data, 60 * 60 * 24)
     response = HttpResponse(data, content_type="image/png")
     response["Cache-Control"] = "public, max-age=86400"

@@ -27,6 +27,11 @@ class SkillSubcategory(OrderedModel):
             )
         ]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Moving a subcategory to another main category moves its skills with it
+        self.skills.exclude(main_category=self.main_category).update(main_category=self.main_category)
+
     def __str__(self):
         return f"{self.get_main_category_display()} / {self.name}"
 
@@ -66,6 +71,11 @@ class Skill(OrderedModel):
             raise ValidationError(
                 {"subcategory": "Subcategory does not belong to the selected main category."}
             )
+
+    def save(self, *args, **kwargs):
+        if self.subcategory_id:  # a skill always sits under its subcategory's main category
+            self.main_category = self.subcategory.main_category
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

@@ -1,6 +1,6 @@
-<section id="blogs" class="section section-alt" aria-label="blogs">
+<section id="blogs" class="section{% if alt %} section-alt{% endif %}" aria-label="blogs">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Blog" title="Latest articles" subtitle="Thoughts, tutorials and notes." %}
+    {% include "components/section_title.html" with eyebrow=sections.blogs.eyebrow title=sections.blogs.title subtitle=sections.blogs.subtitle %}
     {% if latest_posts %}
     <div class="row g-4">
       {% for post in latest_posts %}

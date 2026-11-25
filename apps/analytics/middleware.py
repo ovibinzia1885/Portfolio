@@ -9,9 +9,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import F
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
-from .models import DailyVisitor, PageViewStat
+from .models import CvDownloadStat, DailyVisitor, PageViewStat
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ BOT_RE = re.compile(
 )
 SKIP_PREFIXES = ("/static/", "/media/", "/favicon", "/robots.txt", "/sitemap.xml", "/cv/view/")
 TOTAL_CACHE_KEY = "analytics:total_visitors"
+VIEWS_CACHE_KEY = "analytics:total_views"
 
 
 def client_ip(request):
@@ -38,10 +40,17 @@ def visitor_hash(request, day):
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-def should_count(request, response):
+def is_cv_download(request):
+    try:
+        return request.path == reverse("core:download_cv")
+    except NoReverseMatch:
+        return False
+
+
+def should_count(request, response, html=True):
     if request.method != "GET" or response.status_code != 200:
         return False
-    if "text/html" not in response.get("Content-Type", ""):
+    if html and "text/html" not in response.get("Content-Type", ""):
         return False
     path = request.path
     if path.startswith(SKIP_PREFIXES) or path.startswith("/" + settings.ADMIN_URL.lstrip("/")):
@@ -71,6 +80,7 @@ def record(request):
                     PageViewStat.objects.create(date=today, path=path, views=1)
             except IntegrityError:  # created by a parallel request
                 PageViewStat.objects.filter(date=today, path=path).update(views=F("views") + 1)
+        cache.delete(VIEWS_CACHE_KEY)
 
         key = visitor_hash(request, today)
         updated = DailyVisitor.objects.filter(date=today, visitor=key).update(
@@ -85,6 +95,17 @@ def record(request):
                 DailyVisitor.objects.filter(date=today, visitor=key).update(views=F("views") + 1)
 
 
+def record_cv_download():
+    today = timezone.localdate()
+    with transaction.atomic():
+        if not CvDownloadStat.objects.filter(date=today).update(downloads=F("downloads") + 1):
+            try:
+                with transaction.atomic():
+                    CvDownloadStat.objects.create(date=today, downloads=1)
+            except IntegrityError:
+                CvDownloadStat.objects.filter(date=today).update(downloads=F("downloads") + 1)
+
+
 class VisitorCounterMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -92,7 +113,10 @@ class VisitorCounterMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         try:
-            if should_count(request, response):
+            if is_cv_download(request):
+                if should_count(request, response, html=False):
+                    record_cv_download()
+            elif should_count(request, response):
                 record(request)
         except Exception:  # counting must never break a page
             logger.exception("Visitor counting failed")

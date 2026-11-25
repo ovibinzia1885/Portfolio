@@ -41,6 +41,8 @@
       <div><span>{{ v.last_30 }}</span><small>Last 30 days</small></div>
       <div><span>{{ v.total }}</span><small>All time</small></div>
       <div><span>{{ v.page_views_30 }}</span><small>Page views · 30 d</small></div>
+      <div><span>{{ v.page_views_total }}</span><small>Total views</small></div>
+      <div title="Last 30 days: {{ v.cv_downloads_30 }}"><span>{{ v.cv_downloads }}</span><small>CV downloads</small></div>
     </div>
     <div class="op-chart" role="img" aria-label="Visitors per day, last 14 days">
       {% for day in v.chart %}

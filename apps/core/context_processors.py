@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 
 from .models import Profile
 
@@ -37,13 +38,25 @@ def site(request):
         "canonical_url": canonical,
         "default_og_image": og_image,
         "asset_version": asset_version(),
-        "visitor_total": _visitor_total(profile),
+        **_visit_counts(profile),
+        **_sections(request),
     }
 
 
-def _visitor_total(profile):
-    if not profile or not profile.show_visitor_count:
-        return None
-    from apps.analytics.stats import total_visitors
+def _sections(request):
+    """Section wording (`sections.about.title`, …) and the sidebar menu. Lazy: only queried when a page uses them."""
+    from .sections import all_sections, menu_items
 
-    return total_visitors()
+    return {
+        "sections": SimpleLazyObject(lambda: {s.key: s for s in all_sections(request)}),
+        "menu_items": SimpleLazyObject(lambda: menu_items(request)),
+    }
+
+
+def _visit_counts(profile):
+    """Footer numbers: unique visitors and total page views (both all-time)."""
+    if not profile or not profile.show_visitor_count:
+        return {"visitor_total": None, "view_total": None}
+    from apps.analytics.stats import total_views, total_visitors
+
+    return {"visitor_total": total_visitors(), "view_total": total_views()}

@@ -4,17 +4,14 @@
 
 {% block content %}
   {% include "core/sections/hero.html" %}
-  {% include "core/sections/about.html" %}
-  {% include "core/sections/education.html" %}
-  {% include "core/sections/experience.html" %}
-  {% include "core/sections/skills.html" %}
-  {% include "core/sections/projects.html" %}
-  {% include "core/sections/achievements.html" %}
-  {% include "core/sections/certifications.html" %}
-  {% include "core/sections/training.html" %}
-  {% include "core/sections/blogs.html" %}
-  {% include "core/sections/research.html" %}
-  {% include "core/sections/contact.html" %}
+  {% comment %}
+    Sections, their order and visibility come from Admin > Site sections.
+    Empty sections are hidden from visitors (the logged-in owner still sees them, to fill them in).
+    `alt` alternates the background so neighbouring sections always differ.
+  {% endcomment %}
+  {% for section in home_sections %}
+    {% include section.template with alt=forloop.counter|divisibleby:2|yesno:",1" %}
+  {% endfor %}
   {# One shared image/PDF preview popup for certificates and awards #}
   {% include "components/certificate_modal.html" %}
 {% endblock %}

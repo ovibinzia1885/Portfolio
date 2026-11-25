@@ -1,6 +1,6 @@
-<section id="projects" class="section section-alt" aria-label="projects">
+<section id="projects" class="section{% if alt %} section-alt{% endif %}" aria-label="projects">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Projects" title="Featured projects" subtitle="Client work and personal projects. Filter by technology." %}
+    {% include "components/section_title.html" with eyebrow=sections.projects.eyebrow title=sections.projects.title subtitle=sections.projects.subtitle %}
     {% if has_featured_projects %}
       {% for group in project_groups %}{% include "components/project_group.html" %}{% endfor %}
       <div class="text-center mt-2"><a href="{% url 'projects:list' %}" class="btn btn-ghost">View all projects <i class="bi bi-arrow-right ms-1"></i></a></div>

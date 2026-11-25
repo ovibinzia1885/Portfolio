@@ -6,13 +6,22 @@ from django.core.cache import cache
 from django.db.models import Count, Sum
 from django.utils import timezone
 
-from .middleware import TOTAL_CACHE_KEY
-from .models import DailyVisitor, PageViewStat
+from .middleware import TOTAL_CACHE_KEY, VIEWS_CACHE_KEY
+from .models import CvDownloadStat, DailyVisitor, PageViewStat
 
 
 def total_visitors():
     """All-time visitors (unique per day), cached for 5 minutes."""
     return cache.get_or_set(TOTAL_CACHE_KEY, DailyVisitor.objects.count, 300)
+
+
+def _sum_views():
+    return PageViewStat.objects.aggregate(s=Sum("views"))["s"] or 0
+
+
+def total_views():
+    """All-time page views (every counted page load), cached until the next view."""
+    return cache.get_or_set(VIEWS_CACHE_KEY, _sum_views, 300)
 
 
 def dashboard_stats(days=14):
@@ -48,6 +57,9 @@ def dashboard_stats(days=14):
         "last_30": visitors.filter(date__gte=since_30).count(),
         "total": visitors.count(),
         "page_views_30": PageViewStat.objects.filter(date__gte=since_30).aggregate(s=Sum("views"))["s"] or 0,
+        "page_views_total": _sum_views(),
+        "cv_downloads": CvDownloadStat.objects.aggregate(s=Sum("downloads"))["s"] or 0,
+        "cv_downloads_30": CvDownloadStat.objects.filter(date__gte=since_30).aggregate(s=Sum("downloads"))["s"] or 0,
         "chart": chart,
         "top_pages": list(top_pages),
         "top_referrers": list(top_referrers),

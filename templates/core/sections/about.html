@@ -1,11 +1,11 @@
-<section id="about" class="section section-alt" aria-label="about">
+<section id="about" class="section{% if alt %} section-alt{% endif %}" aria-label="about">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="About me" title="Who I am" subtitle="A short introduction." %}
+    {% include "components/section_title.html" with eyebrow=sections.about.eyebrow title=sections.about.title subtitle=sections.about.subtitle %}
     <div class="row g-4">
       <div class="col-lg-7 reveal">
         <div class="prose">
           {% if profile and profile.bio %}{{ profile.bio|linebreaks }}
-          {% else %}{% include "components/empty_state.html" with icon="bi-person-lines-fill" text="Write your bio in the admin panel (Core > Profile > Bio)." %}{% endif %}
+          {% elif user.is_staff %}{% include "components/empty_state.html" with icon="bi-person-lines-fill" text="Write your bio in the admin panel (Profile & Website > Profile > Bio)." %}{% endif %}
         </div>
         <div class="stat-strip mt-4">
           <div><p class="mono-label">Projects</p><strong class="big">{{ stats.projects }}</strong></div>
@@ -20,7 +20,7 @@
             {% if profile.email %}<div class="fact"><i class="bi bi-envelope"></i><div><small>Email</small><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></div></div>{% endif %}
             {% if profile.phone %}<div class="fact"><i class="bi bi-telephone"></i><div><small>Phone</small><a href="tel:{{ profile.phone }}">{{ profile.phone }}</a></div></div>{% endif %}
           {% endif %}
-          {% if profile and profile.resume %}
+          {% if profile and profile.resume_available %}
             <div class="d-grid gap-2 mt-3">
               {% if profile.resume_is_pdf %}<a href="{% url 'core:cv_preview' %}" class="btn btn-ghost"><i class="bi bi-eye me-2"></i>Preview CV</a>{% endif %}
               <a href="{% url 'core:download_cv' %}" class="btn btn-grad"><i class="bi bi-download me-2"></i>Download CV</a>

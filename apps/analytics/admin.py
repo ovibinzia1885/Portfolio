@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import DailyVisitor, PageViewStat
+from .models import CvDownloadStat, DailyVisitor, PageViewStat
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -30,4 +30,10 @@ class PageViewStatAdmin(ReadOnlyAdmin):
     list_display = ("date", "path", "views")
     list_filter = ("date",)
     search_fields = ("path",)
+    date_hierarchy = "date"
+
+
+@admin.register(CvDownloadStat)
+class CvDownloadStatAdmin(ReadOnlyAdmin):
+    list_display = ("date", "downloads")
     date_hierarchy = "date"

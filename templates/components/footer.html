@@ -1,21 +1,24 @@
-{% url 'core:home' as home_url %}
 <footer class="site-footer">
   <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
     <div class="d-flex flex-wrap align-items-center gap-3">
       <p class="meta mb-0">&copy; <span id="year">{% now "Y" %}</span> {{ site_name }}. All rights reserved.</p>
       {% if visitor_total %}{# hidden while still 0 #}
       <span class="visitor-count" title="Unique visitors per day, all time">
-        <i class="bi bi-eye" aria-hidden="true"></i><strong>{{ visitor_total }}</strong> visitor{{ visitor_total|pluralize }}
+        <i class="bi bi-people" aria-hidden="true"></i><strong>{{ visitor_total }}</strong> visitor{{ visitor_total|pluralize }}
       </span>
+      {% if view_total %}
+      <span class="visitor-count" title="Total page views, all time">
+        <i class="bi bi-eye" aria-hidden="true"></i><strong>{{ view_total }}</strong> view{{ view_total|pluralize }}
+      </span>
+      {% endif %}
       {% endif %}
     </div>
     <ul class="list-inline meta mb-0">
-      <li class="list-inline-item"><a href="{% url 'blogs:list' %}">Blog</a></li>
-      <li class="list-inline-item"><a href="{% url 'research:list' %}">Research</a></li>
-      <li class="list-inline-item"><a href="{% url 'certifications:list' %}">Certifications</a></li>
-      <li class="list-inline-item"><a href="{% url 'contact:contact' %}">Contact</a></li>
+      {# pages with their own list page, only when they have content (same rules as the sidebar) #}
+      {% for item in menu_items %}{% if item.key == "blogs" or item.key == "research" or item.key == "certifications" %}<li class="list-inline-item"><a href="{{ item.url }}">{{ item.label }}</a></li>{% endif %}{% endfor %}
+      {% if sections.contact.is_visible %}<li class="list-inline-item"><a href="{% url 'contact:contact' %}">{{ sections.contact.label }}</a></li>{% endif %}
       {% if profile and profile.resume_is_pdf %}<li class="list-inline-item"><a href="{% url 'core:cv_preview' %}">Preview CV</a></li>{% endif %}
-      {% if profile and profile.resume %}<li class="list-inline-item"><a href="{% url 'core:download_cv' %}">Download CV</a></li>{% endif %}
+      {% if profile and profile.resume_available %}<li class="list-inline-item"><a href="{% url 'core:download_cv' %}">Download CV</a></li>{% endif %}
     </ul>
   </div>
 </footer>

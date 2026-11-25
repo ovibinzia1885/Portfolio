@@ -1,3 +1,5 @@
+import re
+
 from django.db import models
 from django.urls import reverse
 
@@ -41,6 +43,8 @@ class Research(OrderedModel):
         verbose_name_plural = "research"
 
     def save(self, *args, **kwargs):
+        # Store the bare DOI ("10.xxxx/…"): a pasted link or "doi:" prefix would break the doi.org link
+        self.doi = re.sub(r"^\s*(?:https?://(?:dx\.)?doi\.org/|doi:\s*)", "", self.doi or "", flags=re.I).strip()
         if not self.slug:
             self.slug = unique_slugify(self, self.title)
         super().save(*args, **kwargs)

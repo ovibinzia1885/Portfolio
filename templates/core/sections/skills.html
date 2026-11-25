@@ -1,6 +1,6 @@
-<section id="skills" class="section" aria-label="skills">
+<section id="skills" class="section{% if alt %} section-alt{% endif %}" aria-label="skills">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Skills" title="Technical skills & expertise" subtitle="Grouped by category. Dots show experience level." %}
+    {% include "components/section_title.html" with eyebrow=sections.skills.eyebrow title=sections.skills.title subtitle=sections.skills.subtitle %}
     {% if skill_groups %}
     <div class="skill-tabs reveal" data-skill-tabs role="tablist" aria-label="Skill categories">
       {% for group in skill_groups %}

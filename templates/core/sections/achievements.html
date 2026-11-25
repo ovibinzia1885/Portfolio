@@ -1,6 +1,6 @@
-<section id="achievements" class="section" aria-label="achievements">
+<section id="achievements" class="section{% if alt %} section-alt{% endif %}" aria-label="achievements">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Achievements" title="Awards & recognition" subtitle="Milestones along the way." %}
+    {% include "components/section_title.html" with eyebrow=sections.achievements.eyebrow title=sections.achievements.title subtitle=sections.achievements.subtitle %}
     {% if achievements %}
     <div class="row g-4">
       {% for item in achievements %}
@@ -26,7 +26,7 @@
             <div class="d-flex flex-wrap gap-3 mt-3">
               {% if item.certificate %}
               <button type="button" class="link-arrow" data-bs-toggle="modal" data-bs-target="#certPreview"
-                      data-cert-src="{{ item.certificate.url }}" data-cert-type="image"
+                      data-cert-src="{{ item.certificate.url }}" data-cert-type="{% if item.certificate_is_pdf %}pdf{% else %}image{% endif %}"
                       data-cert-title="{{ item.title }} - Certificate">Certificate <i class="bi bi-patch-check"></i></button>
               {% endif %}
               {% if item.image %}

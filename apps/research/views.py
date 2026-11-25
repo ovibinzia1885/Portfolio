@@ -47,6 +47,8 @@ def download_pdf(request, slug):
     paper = get_object_or_404(Research, slug=slug)
     if not paper.pdf:
         raise Http404("No PDF available.")
-    return FileResponse(
-        paper.pdf.open("rb"), as_attachment=True, filename=paper.pdf.name.split("/")[-1]
-    )
+    try:
+        handle = paper.pdf.open("rb")
+    except OSError:  # file missing on disk: a clean 404 instead of a server error
+        raise Http404("PDF file not found.")
+    return FileResponse(handle, as_attachment=True, filename=paper.pdf.name.split("/")[-1])

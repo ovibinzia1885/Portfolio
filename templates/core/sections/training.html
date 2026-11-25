@@ -1,6 +1,6 @@
-<section id="training" class="section" aria-label="training">
+<section id="training" class="section{% if alt %} section-alt{% endif %}" aria-label="training">
   <div class="container">
-    {% include "components/section_title.html" with eyebrow="Training" title="Courses & workshops" subtitle="Continuous learning." %}
+    {% include "components/section_title.html" with eyebrow=sections.training.eyebrow title=sections.training.title subtitle=sections.training.subtitle %}
     {% if trainings %}
     <div class="row g-4">
       {% for item in trainings %}
