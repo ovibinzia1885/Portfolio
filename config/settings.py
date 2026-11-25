@@ -1,5 +1,6 @@
 """Django settings for the portfolio project."""
 
+import re
 from pathlib import Path
 
 import dj_database_url
@@ -147,7 +148,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Uploaded files: on Cloudinary when CLOUDINARY_URL is set (production: the server disk is temporary),
 # otherwise in the local media/ folder.
-CLOUDINARY_URL = config("CLOUDINARY_URL", default="")
+CLOUDINARY_URL = config("CLOUDINARY_URL", default="").strip()
+# Fail at start-up with a clear message instead of a 500 error on every page that shows an image
+if CLOUDINARY_URL and not re.fullmatch(r"cloudinary://[^:@\s<>]+:[^@\s<>]+@[\w-]+", CLOUDINARY_URL):
+    raise ImproperlyConfigured(
+        "CLOUDINARY_URL is malformed. Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME "
+        "(no < > brackets, no 'CLOUDINARY_URL=' prefix)."
+    )
 
 # Static files in production: hashed + compressed names served by WhiteNoise (long browser caching).
 # `python manage.py collectstatic` runs in build.sh on every deploy.

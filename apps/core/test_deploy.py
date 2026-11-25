@@ -9,7 +9,7 @@ from unittest import mock
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.core.management import CommandError, call_command
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, TransactionTestCase
 
 from apps.certifications.models import Certification
 
@@ -57,6 +57,20 @@ class CloudinaryStorageTests(SimpleTestCase):
         with mock.patch("cloudinary.uploader.destroy") as destroy:
             self.storage.delete("profile/me.png")
         destroy.assert_called_once_with("portfolio/profile/me", resource_type="image", invalidate=True)
+
+    def test_malformed_cloudinary_url_stops_start_up(self):
+        import os
+        import subprocess
+        import sys
+
+        from django.conf import settings
+
+        code = "import django, os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; django.setup()"
+        for bad in ("//<1111>:<abcd>@demo", "CLOUDINARY_URL=cloudinary://1:a@b"):
+            result = subprocess.run([sys.executable, "-c", code], env={**os.environ, "CLOUDINARY_URL": bad},
+                                    capture_output=True, text=True, cwd=settings.BASE_DIR)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("CLOUDINARY_URL is malformed", result.stderr)
 
     def test_settings_pick_cloudinary_only_when_configured(self):
         from django.conf import settings
@@ -110,3 +124,31 @@ class BackupRestoreTests(TempMediaMixin, TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(CommandError):
                 call_command("restore_site", str(self.backup(tmp)), stdout=io.StringIO())
+
+
+class RestoreReplaceTests(TempMediaMixin, TransactionTestCase):
+    """Real commits (like production): restore --replace into a freshly migrated database."""
+
+    serialized_rollback = True  # keep the migration seed rows for the other tests
+
+    def test_restore_replace_into_a_freshly_migrated_database(self):
+        import tempfile
+
+        from apps.skills.models import SkillSubcategory
+
+        # migration skills/0003 seeds default subcategories (incl. "Manual Testing") in every new database
+        self.assertTrue(SkillSubcategory.objects.filter(name="Manual Testing").exists())
+        Profile.objects.create(full_name="Ovy", resume=pdf_upload("cv.pdf"))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "backup.zip"
+            call_command("backup_site", output=str(path), stdout=io.StringIO())
+            # a new production database: same seed rows, but under other ids, and no profile yet
+            Profile.objects.all().delete()
+            for sub in SkillSubcategory.objects.all():
+                SkillSubcategory.objects.filter(pk=sub.pk).update(id=sub.pk + 1000)
+            with self.assertRaises(CommandError):  # plain restore collides with the seed rows
+                call_command("restore_site", str(path), stdout=io.StringIO())
+            call_command("restore_site", str(path), replace=True, stdout=io.StringIO())
+        self.assertEqual(SkillSubcategory.objects.filter(name="Manual Testing").count(), 1)
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertEqual(SiteSection.objects.count(), 11)
