@@ -66,11 +66,20 @@ class CloudinaryStorageTests(SimpleTestCase):
         from django.conf import settings
 
         code = "import django, os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; django.setup()"
-        for bad in ("//<1111>:<abcd>@demo", "CLOUDINARY_URL=cloudinary://1:a@b"):
+        for bad in ("cloudinary://only-a-key", "https://example.com/x"):
             result = subprocess.run([sys.executable, "-c", code], env={**os.environ, "CLOUDINARY_URL": bad},
                                     capture_output=True, text=True, cwd=settings.BASE_DIR)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("CLOUDINARY_URL is malformed", result.stderr)
+
+    def test_common_paste_mistakes_are_cleaned(self):
+        from config.settings import normalize_cloudinary_url
+
+        expected = "cloudinary://1111:ab_cd-9@demo"
+        for pasted in ("//<1111>:<ab_cd-9>@demo", "CLOUDINARY_URL=cloudinary://1111:ab_cd-9@demo",
+                       "cloudinary://<1111>:<ab_cd-9>@demo", " 'cloudinary://1111:ab_cd-9@demo' ",
+                       "1111:ab_cd-9@demo", expected):
+            self.assertEqual(normalize_cloudinary_url(pasted), expected, pasted)
 
     def test_settings_pick_cloudinary_only_when_configured(self):
         from django.conf import settings

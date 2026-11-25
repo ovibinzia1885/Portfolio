@@ -1,5 +1,6 @@
 """Django settings for the portfolio project."""
 
+import os
 import re
 from pathlib import Path
 
@@ -148,13 +149,30 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Uploaded files: on Cloudinary when CLOUDINARY_URL is set (production: the server disk is temporary),
 # otherwise in the local media/ folder.
-CLOUDINARY_URL = config("CLOUDINARY_URL", default="").strip()
-# Fail at start-up with a clear message instead of a 500 error on every page that shows an image
-if CLOUDINARY_URL and not re.fullmatch(r"cloudinary://[^:@\s<>]+:[^@\s<>]+@[\w-]+", CLOUDINARY_URL):
-    raise ImproperlyConfigured(
-        "CLOUDINARY_URL is malformed. Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME "
-        "(no < > brackets, no 'CLOUDINARY_URL=' prefix)."
-    )
+def normalize_cloudinary_url(value):
+    """Accept the common copy/paste variants and return cloudinary://KEY:SECRET@CLOUD:
+    "CLOUDINARY_URL=cloudinary://…", "<KEY>:<SECRET>" placeholders filled in with the brackets left,
+    a missing "cloudinary:" before "//", surrounding spaces or quotes."""
+    value = (value or "").strip().strip("'\"").strip()
+    if value.upper().startswith("CLOUDINARY_URL="):
+        value = value.split("=", 1)[1].strip().strip("'\"")
+    value = value.replace("<", "").replace(">", "").replace(" ", "")
+    if value.startswith("//"):
+        value = "cloudinary:" + value
+    elif value and "://" not in value:
+        value = "cloudinary://" + value
+    return value
+
+
+CLOUDINARY_URL = normalize_cloudinary_url(config("CLOUDINARY_URL", default=""))
+if CLOUDINARY_URL:
+    # Fail at start-up with a clear message instead of a 500 error on every page that shows an image
+    if not re.fullmatch(r"cloudinary://[^:@\s]+:[^@\s]+@[\w-]+", CLOUDINARY_URL):
+        raise ImproperlyConfigured(
+            "CLOUDINARY_URL is malformed. Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME."
+        )
+    # The Cloudinary SDK also reads this variable by itself: give it the cleaned value
+    os.environ["CLOUDINARY_URL"] = CLOUDINARY_URL
 
 # Static files in production: hashed + compressed names served by WhiteNoise (long browser caching).
 # `python manage.py collectstatic` runs in build.sh on every deploy.
