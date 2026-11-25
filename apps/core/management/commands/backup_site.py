@@ -20,7 +20,8 @@ from django.db import models
 from django.utils import timezone
 
 # Rebuilt by `migrate` (or not worth keeping)
-EXCLUDE = ["contenttypes", "auth.permission", "sessions", "admin.logentry"]
+EXCLUDE = ["contenttypes", "auth.permission", "sessions", "admin.logentry",
+           "core.sitesetting"]  # holds the Cloudinary secret: never written into a backup file
 
 
 def media_names():

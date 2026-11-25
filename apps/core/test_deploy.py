@@ -39,8 +39,19 @@ class CloudinaryStorageTests(SimpleTestCase):
         pdf = self.storage.url("resume/cv.pdf")
         self.assertTrue(image.startswith("https://res.cloudinary.com/demo-cloud/image/upload/"))
         self.assertTrue(image.endswith("portfolio/profile/me.jpg"))
-        self.assertTrue(pdf.startswith("https://res.cloudinary.com/demo-cloud/raw/upload/"))
-        self.assertTrue(pdf.endswith("portfolio/resume/cv.pdf"))
+        self.assertEqual(pdf, "/files/resume/cv.pdf")  # documents go through this site (signed download)
+        cdn = self.storage.cdn_url("resume/cv.pdf")
+        self.assertTrue(cdn.startswith("https://res.cloudinary.com/demo-cloud/raw/upload/"))
+        self.assertTrue(cdn.endswith("portfolio/resume/cv.pdf"))
+
+    def test_documents_are_downloaded_with_a_signed_url(self):
+        with mock.patch("urllib.request.urlopen") as urlopen:
+            urlopen.return_value.__enter__.return_value.read.return_value = b"%PDF-1.4"
+            data = self.storage.open("resume/cv.pdf").read()
+        self.assertEqual(data, b"%PDF-1.4")
+        source = urlopen.call_args.args[0]
+        self.assertIn("api.cloudinary.com", source)  # private download API, not the public CDN
+        self.assertIn("signature=", source)
 
     def test_save_keeps_the_name_and_uploads_with_public_id(self):
         with mock.patch("cloudinary.uploader.upload") as upload, \
@@ -91,6 +102,11 @@ class CloudinaryStorageTests(SimpleTestCase):
             if "API Key: 1111" in pasted and "API Secret" not in pasted:
                 continue  # secret missing: covered below
             self.assertEqual(normalize_cloudinary_url(pasted), expected, pasted)
+        from apps.core.cloudinary_url import is_valid
+
+        self.assertFalse(is_valid(normalize_cloudinary_url(
+            "cloudinary://<your_api_key>:<your_api_secret>@demo")))  # template: never used as credentials
+        self.assertTrue(is_valid(expected))
         # placeholders without real values stay unusable (reported, never used)
         self.assertFalse(normalize_cloudinary_url("cloudinary://<your_api_key>:<your_api_secret>@demo")
                          .startswith("cloudinary://1111"))
@@ -190,3 +206,85 @@ class RestoreReplaceTests(TempMediaMixin, TransactionTestCase):
         self.assertEqual(SkillSubcategory.objects.filter(name="Manual Testing").count(), 1)
         self.assertEqual(Profile.objects.count(), 1)
         self.assertEqual(SiteSection.objects.count(), 11)
+
+
+class ConfiguredMediaStorageTests(TempMediaMixin, TestCase):
+    """Production without a usable CLOUDINARY_URL: the connection saved in Admin > Site settings is used."""
+
+    def setUp(self):
+        from .storage import ConfiguredMediaStorage
+
+        ConfiguredMediaStorage.reset()
+        self.addCleanup(ConfiguredMediaStorage.reset)
+        self.storage = ConfiguredMediaStorage()
+
+    def test_local_files_until_a_connection_is_saved(self):
+        from django.core.files.storage import FileSystemStorage
+
+        from .models import SiteSetting
+        from .storage import ConfiguredMediaStorage
+
+        self.assertIsInstance(ConfiguredMediaStorage.target(), FileSystemStorage)
+        self.assertFalse(self.storage.is_cloudinary)
+        SiteSetting.objects.create(cloudinary_url="cloudinary://<your_api_key>:<your_api_secret>@demo\n"
+                                                  "API Secret: s3cr3t\nAPI Key: 1111")
+        self.assertTrue(self.storage.is_cloudinary)  # saved value is cleaned and used at once
+        self.assertTrue(self.storage.url("profile/me.jpg").startswith("https://res.cloudinary.com/demo/image/"))
+
+    def test_admin_form_keeps_rejects_and_cleans(self):
+        from .admin import SiteSettingForm
+        from .models import SiteSetting
+
+        setting = SiteSetting.objects.create(cloudinary_url="cloudinary://1111:s3cr3t@demo")
+        form = SiteSettingForm(data={"cloudinary_url": ""}, instance=setting)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.save().cloudinary_url, "cloudinary://1111:s3cr3t@demo")  # empty = keep
+        bad = SiteSettingForm(data={"cloudinary_url": "hello world"}, instance=setting)
+        self.assertFalse(bad.is_valid())
+        self.assertNotIn("hello", str(bad.errors))  # only the masked shape is shown
+        good = SiteSettingForm(data={"cloudinary_url": "//<2222>:<n3w>@demo"}, instance=setting)
+        self.assertTrue(good.is_valid())
+        self.assertEqual(good.save().cloudinary_url, "cloudinary://2222:n3w@demo")
+
+    def test_set_cloudinary_command_tests_login_then_saves(self):
+        from .models import SiteSetting
+
+        with mock.patch("cloudinary.api.ping", return_value={"status": "ok"}):
+            call_command("set_cloudinary", "cloudinary://1111:s3cr3t@demo", stdout=io.StringIO())
+        self.assertEqual(SiteSetting.objects.get().cloudinary_url, "cloudinary://1111:s3cr3t@demo")
+        with self.assertRaises(CommandError):
+            call_command("set_cloudinary", "not a url", stdout=io.StringIO())
+
+    def test_backup_never_contains_the_secret(self):
+        import tempfile
+
+        from .models import SiteSetting
+
+        SiteSetting.objects.create(cloudinary_url="cloudinary://1111:s3cr3t@demo")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "b.zip"
+            call_command("backup_site", output=str(path), stdout=io.StringIO())
+            with zipfile.ZipFile(path) as archive:
+                self.assertNotIn(b"s3cr3t", archive.read("data.json"))
+
+    def test_dashboard_warns_while_not_connected(self):
+        from django.test import override_settings
+
+        from .dashboard import media_warning
+
+        backend = {"default": {"BACKEND": "apps.core.storage.ConfiguredMediaStorage"},
+                   "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}
+        with override_settings(STORAGES=backend):
+            self.assertIn("Site settings", media_warning())
+
+
+class MediaFileViewTests(TempMediaMixin, TestCase):
+    def test_serves_documents_inline_and_blocks_tricks(self):
+        cert = Certification.objects.create(name="ISTQB", issuing_organization="ISTQB",
+                                            certificate=pdf_upload("istqb.pdf"))
+        response = self.client.get(f"/files/{cert.certificate.name}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("inline", response["Content-Disposition"])
+        self.assertEqual(self.client.get("/files/certifications/missing.pdf").status_code, 404)
+        self.assertEqual(self.client.get("/files/../settings.py").status_code, 404)

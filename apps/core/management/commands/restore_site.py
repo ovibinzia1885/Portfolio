@@ -82,9 +82,11 @@ class Command(BaseCommand):
         """With Cloudinary: test the login first, so a wrong CLOUDINARY_URL fails before anything is loaded."""
         from django.core.files.storage import storages
 
-        from apps.core.storage import CloudinaryStorage
+        from apps.core.storage import CloudinaryStorage, ConfiguredMediaStorage
 
         storage = storages["default"]
+        if isinstance(storage, ConfiguredMediaStorage):
+            storage = storage.target()
         if not isinstance(storage, CloudinaryStorage):
             return
         try:

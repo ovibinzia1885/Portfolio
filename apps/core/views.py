@@ -130,6 +130,24 @@ def cv_preview(request):
     return render(request, "core/cv.html", {"cv_name": cv_filename(profile)})
 
 
+def serve_media_file(request, name):
+    """Uploaded documents stored on Cloudinary (certificates, papers): served inline through this site."""
+    import mimetypes
+
+    from django.core.files.storage import default_storage
+
+    if ".." in name.split("/") or name.startswith("/"):
+        raise Http404
+    try:
+        handle = default_storage.open(name, "rb")
+    except OSError:
+        raise Http404("File not found.")
+    content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
+    response = FileResponse(handle, content_type=content_type, filename=PurePosixPath(name).name)
+    response["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
 def cv_inline(request):
     """Serve the PDF inline so it can be shown inside the preview page."""
     profile = _profile_with_cv()

@@ -10,7 +10,7 @@ from django.views.generic import RedirectView
 
 from apps.core.sitemaps import sitemaps
 from apps.core.favicon import favicon
-from apps.core.views import robots_txt
+from apps.core.views import robots_txt, serve_media_file
 
 
 class FaviconRedirect(RedirectView):
@@ -28,6 +28,8 @@ urlpatterns = [
     path("favicon.ico", FaviconRedirect.as_view(), name="favicon_ico"),
     # Profile photo as a small square image (used as the admin header logo)
     path("favicon-<int:size>.png", favicon, name="favicon"),
+    # Documents kept on Cloudinary (PDF certificates etc.), see apps.core.storage.CloudinaryStorage.url
+    path("files/<path:name>", serve_media_file, name="media_file"),
     path("projects/", include("apps.projects.urls")),
     path("blog/", include("apps.blogs.urls")),
     path("research/", include("apps.research.urls")),

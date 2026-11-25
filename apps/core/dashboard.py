@@ -62,7 +62,19 @@ def dashboard(context):
         visits = dashboard_stats()
         visits["visitors_url"] = _url("admin:analytics_dailyvisitor_changelist")
         visits["pages_url"] = _url("admin:analytics_pageviewstat_changelist")
-    from django.conf import settings
-
     return {"cards": cards, "quick": quick, "profile": profile, "profile_url": profile_url, "visits": visits,
-            "warning": getattr(settings, "CLOUDINARY_URL_PROBLEM", "")}
+            "warning": media_warning()}
+
+
+def media_warning():
+    """Shown on the dashboard when the live site keeps uploads on its temporary disk (no Cloudinary)."""
+    from django.core.files.storage import storages
+
+    from .storage import ConfiguredMediaStorage
+
+    storage = storages["default"]
+    if isinstance(storage, ConfiguredMediaStorage) and not storage.is_cloudinary:
+        return ("Images and files are not connected to Cloudinary, so they do not show on the live site. "
+                "Open Site settings and paste the Cloudinary connection "
+                "(cloudinary://API_KEY:API_SECRET@CLOUD_NAME).")
+    return ""

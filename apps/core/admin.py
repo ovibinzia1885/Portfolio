@@ -1,7 +1,60 @@
 from django.contrib import admin
 
 from .admin_mixins import ImagePreviewMixin
-from .models import Profile, SiteSection
+from django import forms
+
+from .cloudinary_url import is_valid, masked_shape, normalize_cloudinary_url
+from .models import Profile, SiteSection, SiteSetting
+
+
+class SiteSettingForm(forms.ModelForm):
+    cloudinary_url = forms.CharField(
+        label="Cloudinary connection", required=False, widget=forms.PasswordInput(render_value=False),
+        help_text="Paste cloudinary://API_KEY:API_SECRET@CLOUD_NAME (Cloudinary > Settings > API Keys). "
+                  "Leave empty to keep the saved value. Hidden after saving.",
+    )
+    clear_cloudinary = forms.BooleanField(label="Remove the saved Cloudinary connection", required=False)
+
+    class Meta:
+        model = SiteSetting
+        fields = ("cloudinary_url",)
+
+    def clean_cloudinary_url(self):
+        value = self.cleaned_data.get("cloudinary_url", "")
+        if not value:
+            return self.instance.cloudinary_url  # keep what is saved
+        normalized = normalize_cloudinary_url(value)
+        if not is_valid(normalized):
+            raise forms.ValidationError(
+                f"Not a Cloudinary connection (shape: {masked_shape(normalized)}). "
+                "Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME."
+            )
+        return normalized
+
+    def save(self, commit=True):
+        if self.cleaned_data.get("clear_cloudinary"):
+            self.instance.cloudinary_url = ""
+        return super().save(commit)
+
+
+@admin.register(SiteSetting)
+class SiteSettingAdmin(admin.ModelAdmin):
+    form = SiteSettingForm
+    list_display = ("__str__", "cloudinary_status", "updated_at")
+    readonly_fields = ("cloudinary_status",)
+    fields = ("cloudinary_status", "cloudinary_url", "clear_cloudinary")
+
+    @admin.display(description="Cloudinary")
+    def cloudinary_status(self, obj):
+        if obj and is_valid(obj.cloudinary_url):
+            return f"Connected (cloud: {obj.cloudinary_url.rsplit('@', 1)[-1]})"
+        return "Not set"
+
+    def has_add_permission(self, request):
+        return super().has_add_permission(request) and not SiteSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Profile)

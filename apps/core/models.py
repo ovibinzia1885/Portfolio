@@ -74,10 +74,15 @@ class Profile(TimeStampedModel):
             return False
         from django.core.files.storage import FileSystemStorage
 
-        if not isinstance(self.resume.storage, FileSystemStorage):
+        from .storage import ConfiguredMediaStorage
+
+        storage = self.resume.storage
+        if isinstance(getattr(storage, "_wrapped", storage), ConfiguredMediaStorage):
+            storage = ConfiguredMediaStorage.target()
+        if not isinstance(getattr(storage, "_wrapped", storage), FileSystemStorage):
             return True  # cloud storage: a check would cost a network call on every page; the view still 404s
         try:
-            return self.resume.storage.exists(self.resume.name)
+            return storage.exists(self.resume.name)
         except (OSError, ValueError):
             return False
 
@@ -88,6 +93,31 @@ class Profile(TimeStampedModel):
 
     def __str__(self):
         return self.full_name
+
+
+class SiteSetting(TimeStampedModel):
+    """Site-wide technical settings editable in the admin (single record)."""
+
+    cloudinary_url = models.CharField(
+        "Cloudinary connection", max_length=300, blank=True,
+        help_text="cloudinary://API_KEY:API_SECRET@CLOUD_NAME (Cloudinary > Settings > API Keys). Used for "
+                  "uploaded images and files on the live site when the server's CLOUDINARY_URL is missing or wrong.",
+    )
+
+    class Meta:
+        verbose_name = "site setting"
+
+    def save(self, *args, **kwargs):
+        from .cloudinary_url import normalize_cloudinary_url
+
+        self.cloudinary_url = normalize_cloudinary_url(self.cloudinary_url)
+        super().save(*args, **kwargs)
+        from .storage import ConfiguredMediaStorage
+
+        ConfiguredMediaStorage.reset()  # use the new value right away
+
+    def __str__(self):
+        return "Site settings"
 
 
 class SiteSection(OrderedModel):
