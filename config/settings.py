@@ -150,19 +150,37 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Uploaded files: on Cloudinary when CLOUDINARY_URL is set (production: the server disk is temporary),
 # otherwise in the local media/ folder.
+def _is_placeholder(part):
+    return not part or re.fullmatch(r"(your[_-]?)?(api[_-]?)?(key|secret|cloud[_-]?name)", part, re.I) is not None
+
+
 def normalize_cloudinary_url(value):
-    """Accept the common copy/paste variants and return cloudinary://KEY:SECRET@CLOUD:
-    "CLOUDINARY_URL=cloudinary://…", "<KEY>:<SECRET>" placeholders filled in with the brackets left,
-    a missing "cloudinary:" before "//", surrounding spaces or quotes."""
-    value = (value or "").strip().strip("'\"").strip()
-    if value.upper().startswith("CLOUDINARY_URL="):
-        value = value.split("=", 1)[1].strip().strip("'\"")
-    value = value.replace("<", "").replace(">", "").replace(" ", "")
-    if value.startswith("//"):
-        value = "cloudinary:" + value
-    elif value and "://" not in value:
-        value = "cloudinary://" + value
-    return value
+    """Return cloudinary://KEY:SECRET@CLOUD from what was pasted, accepting the common variants:
+    "CLOUDINARY_URL=cloudinary://…", <brackets> left around the values, a missing "cloudinary:",
+    quotes or spaces, and the dashboard's template "cloudinary://<your_api_key>:<your_api_secret>@cloud"
+    pasted together with "API Key: …" / "API Secret: …" lines (those lines then supply the real values)."""
+    text = (value or "").replace("<", "").replace(">", "")
+    if not text.strip():
+        return ""
+    key = secret = cloud = ""
+    match = (re.search(r"(?:cloudinary:)?//\s*([^\s:@'\"]+)\s*:\s*([^\s@'\"]+)\s*@\s*([\w-]+)", text)
+             or re.search(r"(?:^|=|\s)['\"]?([^\s:@'\"=]+):([^\s@'\"]+)@([\w-]+)", text))
+    if match:
+        key, secret, cloud = match.groups()
+    labels = {
+        "key": re.search(r"(?im)^\s*api[\s_-]*key\s*[:=]\s*['\"]?([\w-]+)", text),
+        "secret": re.search(r"(?im)^\s*api[\s_-]*secret\s*[:=]\s*['\"]?([\w-]+)", text),
+        "cloud": re.search(r"(?im)^\s*cloud[\s_-]*name\s*[:=]\s*['\"]?([\w-]+)", text),
+    }
+    if _is_placeholder(key) and labels["key"]:
+        key = labels["key"].group(1)
+    if _is_placeholder(secret) and labels["secret"]:
+        secret = labels["secret"].group(1)
+    if _is_placeholder(cloud) and labels["cloud"]:
+        cloud = labels["cloud"].group(1)
+    if key and secret and cloud and not any(map(_is_placeholder, (key, secret, cloud))):
+        return f"cloudinary://{key}:{secret}@{cloud}"
+    return re.sub(r"\s+", " ", text.strip())  # not usable: returned as-is so the check below reports its shape
 
 
 def masked_shape(value):

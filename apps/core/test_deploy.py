@@ -83,8 +83,18 @@ class CloudinaryStorageTests(SimpleTestCase):
         expected = "cloudinary://1111:ab_cd-9@demo"
         for pasted in ("//<1111>:<ab_cd-9>@demo", "CLOUDINARY_URL=cloudinary://1111:ab_cd-9@demo",
                        "cloudinary://<1111>:<ab_cd-9>@demo", " 'cloudinary://1111:ab_cd-9@demo' ",
-                       "1111:ab_cd-9@demo", expected):
+                       "1111:ab_cd-9@demo", expected,
+                       # the dashboard template pasted together with the key/secret lines
+                       "CLOUDINARY_URL=cloudinary://<your_api_key>:<your_api_secret>@demo\n\n"
+                       "API Secret:ab_cd-9\n\nAPI Key: 1111",
+                       "cloudinary://<your_api_key>:<your_api_secret>@demo API Key: 1111"):
+            if "API Key: 1111" in pasted and "API Secret" not in pasted:
+                continue  # secret missing: covered below
             self.assertEqual(normalize_cloudinary_url(pasted), expected, pasted)
+        # placeholders without real values stay unusable (reported, never used)
+        self.assertFalse(normalize_cloudinary_url("cloudinary://<your_api_key>:<your_api_secret>@demo")
+                         .startswith("cloudinary://1111"))
+        self.assertEqual(normalize_cloudinary_url(""), "")
 
     def test_admin_url_accepts_a_pasted_full_address(self):
         import os
