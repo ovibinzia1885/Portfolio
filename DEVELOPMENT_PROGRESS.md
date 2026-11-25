@@ -185,6 +185,14 @@ Full report (16 bugs, steps, screenshots): Claude Docs "Ovy Portfolio — Final 
 - [x] 165 tests passing in normal, reversed and shuffled order (22 new regression tests);
       242 admin pages, 26 public pages, 8 widths: 0 errors
 
+### Deployment preparation - Render + Neon + Cloudinary (2026-11-25)
+- [x] `render.yaml` (free web service `nazmulhoqueovy`, Singapore), `build.sh`, `.python-version` (3.14)
+- [x] WhiteNoise for static files, Gunicorn, Render hostname auto-allowed, Neon connection health checks
+- [x] `apps/core/storage.py`: media on Cloudinary when `CLOUDINARY_URL` is set (images + raw PDFs)
+- [x] `backup_site` / `restore_site` commands: database + media in one zip (move local -> production, backups)
+- [x] Production-mode smoke test (DEBUG=False): pages 200, hashed static files served; 174 tests passing
+- [ ] Owner: create Neon, Cloudinary and Render accounts; fill the secret values in Render; run restore_site
+
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
 `python manage.py seed_demo`; remove everything with `python manage.py seed_demo --clear`

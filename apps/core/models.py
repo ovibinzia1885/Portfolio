@@ -72,6 +72,10 @@ class Profile(TimeStampedModel):
         """True when a CV is set AND its file really exists (a missing file would break the download)."""
         if not self.resume:
             return False
+        from django.core.files.storage import FileSystemStorage
+
+        if not isinstance(self.resume.storage, FileSystemStorage):
+            return True  # cloud storage: a check would cost a network call on every page; the view still 404s
         try:
             return self.resume.storage.exists(self.resume.name)
         except (OSError, ValueError):

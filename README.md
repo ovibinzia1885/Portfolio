@@ -113,8 +113,8 @@ The `--clear` option leaves your own records untouched.
 python manage.py test
 ```
 
-The test suite has 117 tests and covers models, views, URLs, forms, admin, security, SEO and
-query budgets. Results are in [docs/QA_REPORT.md](docs/QA_REPORT.md).
+The test suite has 174 tests and covers models, views, URLs, forms, admin, security, SEO,
+query budgets, media storage and backup/restore. Results are in [docs/QA_REPORT.md](docs/QA_REPORT.md).
 
 ## SEO
 
@@ -125,12 +125,35 @@ query budgets. Results are in [docs/QA_REPORT.md](docs/QA_REPORT.md).
 
 Log in to `/admin/` and fill in your content:
 
-1. **Core › Profile**: name, headline, intro, bio, photo, social links and CV (PDF).
-2. Education, Experience, Skills, Projects (with images), Certifications, Training, Achievements.
-3. Blog posts, categories and tags. Research papers.
-4. Messages sent through the contact form appear under **Contact**.
+1. **Profile & Website › Profile**: name, headline, intro, bio, photo, availability, social links and CV (PDF).
+2. **Profile & Website › Site sections**: titles, menu labels, order and visibility of the home sections.
+3. Education, Experience, Skills, Projects (with images), Certifications, Training, Achievements.
+4. Blog posts, categories and tags. Research papers.
+5. Messages sent through the contact form appear under **Contact**.
+
+## Deployment (free): Render + Neon + Cloudinary
+
+| Part | Service | Notes |
+| --- | --- | --- |
+| Website | [Render](https://render.com) free web service | `render.yaml` + `build.sh`; URL `https://nazmulhoqueovy.onrender.com` |
+| Database | [Neon](https://neon.tech) free Postgres | Region AWS Singapore; data is not deleted for inactivity |
+| Uploaded files | [Cloudinary](https://cloudinary.com) free | Used automatically when `CLOUDINARY_URL` is set |
+
+1. Create the Neon project and the Cloudinary account; keep the Neon connection string and the
+   `CLOUDINARY_URL` private (never commit them).
+2. Render: **New › Blueprint**, pick this repository. Fill in `SECRET_KEY`
+   (`python -c "import secrets; print(secrets.token_urlsafe(64))"`), `DATABASE_URL`, `CLOUDINARY_URL`
+   and `ADMIN_URL`. Every push to `main` then deploys automatically (`build.sh` runs `collectstatic` and `migrate`).
+3. Copy the local site to production once:
+   ```powershell
+   python manage.py backup_site                      # local database + media -> backups/site-backup-<date>.zip
+   $env:DATABASE_URL="<Neon connection string>"; $env:CLOUDINARY_URL="<cloudinary://...>"
+   python manage.py migrate
+   python manage.py restore_site backups\site-backup-<date>.zip
+   ```
+4. Backups later: run `python manage.py backup_site` with the same two variables set; the zip holds
+   all rows and files. Keep backup files private (they contain the admin password hash).
 
 ## Status
 
-The site is in development and deployment has not been set up yet. Progress is tracked in
-[DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md).
+Progress is tracked in [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md).

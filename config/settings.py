@@ -15,6 +15,12 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost", cast=Csv(
 # e.g. https://example.com,https://www.example.com (needed behind HTTPS proxies)
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
+# Render sets this to the site's own address (e.g. nazmulhoqueovy.onrender.com): always allow it
+RENDER_EXTERNAL_HOSTNAME = config("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, RENDER_EXTERNAL_HOSTNAME]
+    CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+
 # Admin lives at a configurable, non-obvious path in production (e.g. ADMIN_URL=manage-7f3k/)
 ADMIN_URL = config("ADMIN_URL", default="admin/")
 if not ADMIN_URL.endswith("/"):
@@ -72,6 +78,7 @@ INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # serves CSS/JS/images in production (no extra web server)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -106,12 +113,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 # --- Database ------------------------------------------------------------
-# Development: SQLite (default).
-# Production: set DATABASE_URL=postgres://user:pass@host:5432/dbname
+# Development: SQLite (default) or local PostgreSQL.
+# Production (Neon): DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
 DATABASES = {
     "default": dj_database_url.parse(
         config("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
+        conn_health_checks=True,  # Neon closes idle connections; reconnect instead of failing
     )
 }
 
@@ -137,15 +145,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Production: hashed static file names (cache-busting, long browser caching).
-# Run `python manage.py collectstatic` after deploying.
+# Uploaded files: on Cloudinary when CLOUDINARY_URL is set (production: the server disk is temporary),
+# otherwise in the local media/ folder.
+CLOUDINARY_URL = config("CLOUDINARY_URL", default="")
+
+# Static files in production: hashed + compressed names served by WhiteNoise (long browser caching).
+# `python manage.py collectstatic` runs in build.sh on every deploy.
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {
+        "BACKEND": "apps.core.storage.CloudinaryStorage" if CLOUDINARY_URL
+        else "django.core.files.storage.FileSystemStorage"
+    },
     "staticfiles": {
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
             if DEBUG
-            else "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         )
     },
 }
