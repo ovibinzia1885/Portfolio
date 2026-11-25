@@ -98,19 +98,22 @@ img { max-width: 100%; height: auto; }
 }
 
 /* 3. Shell & sidebar ------------------------------------------------------- */
+/* Full-width layout: sidebar fixed to the left edge, content uses the rest of the screen */
 .app-shell {
-  width: calc(100% - 32px); max-width: 1480px; margin: 16px auto; background: var(--bg);
-  border: 1px solid var(--border); border-radius: 22px;
+  width: 100%; min-height: 100vh; min-height: 100dvh; margin: 0; background: var(--bg);
   display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-  box-shadow: var(--shadow);
 }
-.main-area { min-width: 0; display: flex; flex-direction: column; min-height: calc(100vh - 34px); }
+.main-area { min-width: 0; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
 .main-area main { flex: 1 0 auto; }
-.main-area .container { max-width: none; padding-left: clamp(1.25rem, 3.4vw, 2.75rem); padding-right: clamp(1.25rem, 3.4vw, 2.75rem); }
+/* content stays readable on very wide screens (2K/4K): at most 1600px, centred in the content area */
+.main-area .container {
+  max-width: 1600px; margin-left: auto; margin-right: auto;
+  padding-left: clamp(1.25rem, 3.4vw, 3rem); padding-right: clamp(1.25rem, 3.4vw, 3rem);
+}
 
 .sidebar {
-  position: sticky; top: 16px; align-self: start; height: calc(100vh - 34px);
-  border-right: 1px solid var(--border); border-radius: 22px 0 0 22px;
+  position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh;
+  border-right: 1px solid var(--border);
   background: radial-gradient(120% 50% at 0% 0%, var(--accent-soft), transparent 60%), linear-gradient(180deg, var(--surface), var(--bg));
   display: flex; flex-direction: column; padding: 1.6rem 1.35rem 1.25rem; overflow-y: auto;
 }
