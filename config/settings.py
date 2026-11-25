@@ -24,9 +24,10 @@ if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, f"https://{RENDER_EXTERNAL_HOSTNAME}"]
 
 # Admin lives at a configurable, non-obvious path in production (e.g. ADMIN_URL=manage-7f3k/)
-ADMIN_URL = config("ADMIN_URL", default="admin/")
-if not ADMIN_URL.endswith("/"):
-    ADMIN_URL += "/"
+ADMIN_URL = config("ADMIN_URL", default="admin/").strip().strip("'\"<>")
+if "://" in ADMIN_URL:  # a full address was pasted, e.g. https://example.com/my-panel/ -> my-panel/
+    ADMIN_URL = ADMIN_URL.split("://", 1)[1].partition("/")[2]
+ADMIN_URL = ADMIN_URL.strip("/") + "/" if ADMIN_URL.strip("/") else "admin/"
 
 if not DEBUG:
     if len(SECRET_KEY) < 50 or SECRET_KEY.startswith(("change-me", "django-insecure")):

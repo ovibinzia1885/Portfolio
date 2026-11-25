@@ -86,6 +86,20 @@ class CloudinaryStorageTests(SimpleTestCase):
                        "1111:ab_cd-9@demo", expected):
             self.assertEqual(normalize_cloudinary_url(pasted), expected, pasted)
 
+    def test_admin_url_accepts_a_pasted_full_address(self):
+        import os
+        import subprocess
+        import sys
+
+        from django.conf import settings
+
+        code = ("import django, os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; django.setup();"
+                "from django.conf import settings as s; print(s.ADMIN_URL)")
+        for pasted in ("https://nazmulhoqueovy.onrender.com/ovy-panel-1a2b/", "/ovy-panel-1a2b", "ovy-panel-1a2b/"):
+            result = subprocess.run([sys.executable, "-c", code], env={**os.environ, "ADMIN_URL": pasted},
+                                    capture_output=True, text=True, cwd=settings.BASE_DIR)
+            self.assertEqual(result.stdout.strip(), "ovy-panel-1a2b/", (pasted, result.stderr[-300:]))
+
     def test_settings_pick_cloudinary_only_when_configured(self):
         from django.conf import settings
 
