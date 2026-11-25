@@ -191,7 +191,13 @@ Full report (16 bugs, steps, screenshots): Claude Docs "Ovy Portfolio — Final 
 - [x] `apps/core/storage.py`: media on Cloudinary when `CLOUDINARY_URL` is set (images + raw PDFs)
 - [x] `backup_site` / `restore_site` commands: database + media in one zip (move local -> production, backups)
 - [x] Production-mode smoke test (DEBUG=False): pages 200, hashed static files served; 174 tests passing
-- [ ] Owner: create Neon, Cloudinary and Render accounts; fill the secret values in Render; run restore_site
+- [x] Live at https://nazmulhoqueovy.onrender.com: data restored to Neon (`restore_site --replace`),
+      19 files on Cloudinary, connection stored in Site settings; PDFs via signed download (`/files/`)
+- [x] Robust config: pasted CLOUDINARY_URL/ADMIN_URL variants accepted, placeholders rejected,
+      a bad media setting never takes the site down (admin dashboard warning)
+- [x] Full-width layout (no framed shell); checked at 11 widths 360–2560px; 185 tests passing
+- [ ] Owner: rotate the Cloudinary API key (Admin > Site settings), delete Downloads\render_values.txt,
+      change the admin password
 
 ### Placeholder content (replace with your own)
 All sample records start with `[Sample]` and text says PLACEHOLDER. Created by
