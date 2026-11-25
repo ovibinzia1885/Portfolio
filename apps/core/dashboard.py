@@ -62,4 +62,7 @@ def dashboard(context):
         visits = dashboard_stats()
         visits["visitors_url"] = _url("admin:analytics_dailyvisitor_changelist")
         visits["pages_url"] = _url("admin:analytics_pageviewstat_changelist")
-    return {"cards": cards, "quick": quick, "profile": profile, "profile_url": profile_url, "visits": visits}
+    from django.conf import settings
+
+    return {"cards": cards, "quick": quick, "profile": profile, "profile_url": profile_url, "visits": visits,
+            "warning": getattr(settings, "CLOUDINARY_URL_PROBLEM", "")}

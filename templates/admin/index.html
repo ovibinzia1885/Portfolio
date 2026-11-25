@@ -4,6 +4,7 @@
 {% block content %}
 {% dashboard as dash %}
 <div class="op-dashboard">
+  {% if dash.warning %}<p class="errornote">{{ dash.warning }}</p>{% endif %}
   <section class="op-hero">
     <div>
       <p class="op-eyebrow">// welcome back</p>

@@ -58,19 +58,24 @@ class CloudinaryStorageTests(SimpleTestCase):
             self.storage.delete("profile/me.png")
         destroy.assert_called_once_with("portfolio/profile/me", resource_type="image", invalidate=True)
 
-    def test_malformed_cloudinary_url_stops_start_up(self):
+    def test_malformed_cloudinary_url_keeps_the_site_up_and_logs_its_shape(self):
         import os
         import subprocess
         import sys
 
         from django.conf import settings
 
-        code = "import django, os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; django.setup()"
-        for bad in ("cloudinary://only-a-key", "https://example.com/x"):
-            result = subprocess.run([sys.executable, "-c", code], env={**os.environ, "CLOUDINARY_URL": bad},
-                                    capture_output=True, text=True, cwd=settings.BASE_DIR)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("CLOUDINARY_URL is malformed", result.stderr)
+        code = ("import django, os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; django.setup();"
+                "from django.conf import settings as s; print(s.STORAGES['default']['BACKEND'].rsplit('.', 1)[-1],"
+                " 'CLOUDINARY_URL' in os.environ)")
+        result = subprocess.run([sys.executable, "-c", code],
+                                env={**os.environ, "CLOUDINARY_URL": "https://example.com/Secret99"},
+                                capture_output=True, text=True, cwd=settings.BASE_DIR)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "FileSystemStorage False")  # local storage, SDK sees no bad value
+        self.assertIn("CLOUDINARY_URL is malformed", result.stderr)
+        self.assertIn("xxxxx://xxxxxxx.xxx/xxxxxxxx", result.stderr)  # shape only
+        self.assertNotIn("Secret99", result.stderr)
 
     def test_common_paste_mistakes_are_cleaned(self):
         from config.settings import normalize_cloudinary_url

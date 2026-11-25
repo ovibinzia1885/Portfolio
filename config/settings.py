@@ -164,15 +164,30 @@ def normalize_cloudinary_url(value):
     return value
 
 
+def masked_shape(value):
+    """The value's structure with every letter/digit hidden, e.g. cloudinary://xxxx:xxxx@xxxx (safe to log)."""
+    head = "cloudinary://" if value.startswith("cloudinary://") else ""
+    return head + re.sub(r"[A-Za-z0-9]", "x", value[len(head):])
+
+
 CLOUDINARY_URL = normalize_cloudinary_url(config("CLOUDINARY_URL", default=""))
+CLOUDINARY_URL_PROBLEM = ""
+if CLOUDINARY_URL and not re.fullmatch(r"cloudinary://[^:@\s]+:[^@\s]+@[\w-]+", CLOUDINARY_URL):
+    # Never take the whole site down for this: pages keep working (uploaded images are missing) and the
+    # problem is logged with the value's shape only (no secret), and shown on the admin dashboard.
+    CLOUDINARY_URL_PROBLEM = (
+        "CLOUDINARY_URL is malformed, so uploaded files are not served. Expected "
+        f"cloudinary://API_KEY:API_SECRET@CLOUD_NAME, got this shape: {masked_shape(CLOUDINARY_URL)}"
+    )
+    import sys
+
+    print(f"WARNING: {CLOUDINARY_URL_PROBLEM}", file=sys.stderr)
+    CLOUDINARY_URL = ""
+# The Cloudinary SDK reads this variable by itself when imported: give it the cleaned value, or none
 if CLOUDINARY_URL:
-    # Fail at start-up with a clear message instead of a 500 error on every page that shows an image
-    if not re.fullmatch(r"cloudinary://[^:@\s]+:[^@\s]+@[\w-]+", CLOUDINARY_URL):
-        raise ImproperlyConfigured(
-            "CLOUDINARY_URL is malformed. Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME."
-        )
-    # The Cloudinary SDK also reads this variable by itself: give it the cleaned value
     os.environ["CLOUDINARY_URL"] = CLOUDINARY_URL
+else:
+    os.environ.pop("CLOUDINARY_URL", None)
 
 # Static files in production: hashed + compressed names served by WhiteNoise (long browser caching).
 # `python manage.py collectstatic` runs in build.sh on every deploy.
