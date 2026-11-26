@@ -126,6 +126,23 @@ DATABASES = {
     )
 }
 
+# Windows: psycopg's bundled binary DLL can be blocked by Application Control /
+# Smart App Control. psycopg then falls back to the system libpq.dll, which it
+# looks for on PATH, so put the local PostgreSQL "bin" folder on PATH.
+# Set PG_BIN_DIR in .env to override the auto-detected folder.
+if os.name == "nt" and DATABASES["default"]["ENGINE"].endswith("postgresql"):
+    _pg_bin = config("PG_BIN_DIR", default="")
+    if not _pg_bin:
+        _found = sorted(
+            Path(os.environ.get("ProgramFiles", r"C:\Program Files")).glob(
+                "PostgreSQL/*/bin/libpq.dll"
+            ),
+            key=lambda p: int(p.parent.parent.name) if p.parent.parent.name.isdigit() else 0,
+        )
+        _pg_bin = str(_found[-1].parent) if _found else ""
+    if _pg_bin and _pg_bin not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = _pg_bin + os.pathsep + os.environ.get("PATH", "")
+
 # --- Password validation -------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
