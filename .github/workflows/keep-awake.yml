@@ -2,17 +2,23 @@
 # requests, and the next visitor then waits ~50 seconds. One light request every 10 minutes
 # prevents that (one service running all month = ~744 h, inside Render's 750 free hours).
 # The request uses curl's user agent, so the visitor counter ignores it (treated as a bot).
+#
+# GitHub turns off scheduled workflows in a repository with no commits for 60 days. The monthly
+# "stay-enabled" job re-enables this workflow through the GitHub API, which resets that timer,
+# so the site keeps working with no manual action and without extra commits.
 name: Keep site awake
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/10 * * * *"   # ping
+    - cron: "17 4 1 * *"     # monthly: stay enabled
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
   ping:
+    if: github.event.schedule != '17 4 1 * *'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -27,3 +33,15 @@ jobs:
           done
           echo "Site did not answer after 3 attempts"
           exit 1
+
+  stay-enabled:
+    if: github.event.schedule == '17 4 1 * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write   # only what is needed to (re-)enable this workflow
+    steps:
+      - name: Re-enable this workflow (resets GitHub's 60-day inactivity timer)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/${{ github.repository }}/actions/workflows/keep-awake.yml/enable"
